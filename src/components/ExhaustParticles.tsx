@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { EXHAUST_PARTICLE_COUNT as COUNT, MAX_FRAME_DT } from "@/lib/physics";
 
-const NOZZLE_Z = 0.95;
+const NOZZLE_Z = 1.0;
 
 interface Particle {
   pos: THREE.Vector3;
