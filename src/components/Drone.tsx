@@ -80,7 +80,7 @@ export default function Drone({
       ref={body}
       colliders={false}
       gravityScale={0}
-      linearDamping={5}
+      linearDamping={4}
       angularDamping={10}
       lockRotations
       onIntersectionEnter={handleCollision}
