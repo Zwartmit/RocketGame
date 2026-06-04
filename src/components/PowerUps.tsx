@@ -11,7 +11,7 @@ import {
   LANE_LIMIT,
 } from "@/lib/types";
 
-type PowerUpKind = "energy" | "shield";
+type PowerUpKind = "energy" | "shield" | "coolant";
 
 interface PowerUpData {
   id: number;
@@ -30,6 +30,7 @@ interface PowerUpsProps {
   collectedIdsRef: MutableRefObject<Set<number>>;
   onCollectEnergy: () => void;
   onCollectShield: () => void;
+  onCollectCoolant: () => void;
 }
 
 export default function PowerUps({
@@ -38,6 +39,7 @@ export default function PowerUps({
   collectedIdsRef,
   onCollectEnergy,
   onCollectShield,
+  onCollectCoolant,
 }: PowerUpsProps) {
   const timerRef = useRef(POWERUP_INTERVAL * 0.5);
   const powerups = useRef<PowerUpData[]>([]);
@@ -60,7 +62,8 @@ export default function PowerUps({
     timerRef.current -= dt;
     if (timerRef.current <= 0) {
       timerRef.current = POWERUP_INTERVAL + Math.random() * 2;
-      const kind: PowerUpKind = Math.random() < 0.75 ? "energy" : "shield";
+      const r = Math.random();
+      const kind: PowerUpKind = r < 0.55 ? "energy" : r < 0.80 ? "shield" : "coolant";
       powerups.current.push({
         id: nextPuId++,
         x: (Math.random() - 0.5) * LANE_LIMIT * 1.6,
@@ -87,7 +90,8 @@ export default function PowerUps({
       if (dist < HIT_RADIUS) {
         collected.add(pu.id);
         if (pu.kind === "energy") onCollectEnergy();
-        else onCollectShield();
+        else if (pu.kind === "shield") onCollectShield();
+        else onCollectCoolant();
         continue;
       }
 
@@ -118,7 +122,7 @@ export default function PowerUps({
             opacity: 0.85,
           });
           mesh = new THREE.Mesh(geo, mat);
-        } else {
+        } else if (pu.kind === "shield") {
           const geo = new THREE.SphereGeometry(0.5, 16, 16);
           const mat = new THREE.MeshStandardMaterial({
             color: "#3b82f6",
@@ -127,6 +131,17 @@ export default function PowerUps({
             toneMapped: false,
             transparent: true,
             opacity: 0.7,
+          });
+          mesh = new THREE.Mesh(geo, mat);
+        } else {
+          const geo = new THREE.OctahedronGeometry(0.55);
+          const mat = new THREE.MeshStandardMaterial({
+            color: "#38bdf8",
+            emissive: "#38bdf8",
+            emissiveIntensity: 3,
+            toneMapped: false,
+            transparent: true,
+            opacity: 0.8,
           });
           mesh = new THREE.Mesh(geo, mat);
         }

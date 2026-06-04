@@ -12,7 +12,18 @@ import {
   LANE_LIMIT,
 } from "@/lib/types";
 
+/** Mutable runtime data — positions mutated every frame via refs, never stored in React state. */
 interface ObstacleData {
+  id: number;
+  x: number;
+  y: number;
+  z: number;
+  scale: number;
+  rotY: number;
+}
+
+/** Immutable spawn snapshot stored in React state — only used for mount/unmount. */
+interface ObstacleSpawn {
   id: number;
   x: number;
   y: number;
@@ -85,11 +96,12 @@ interface ObstaclesProps {
 }
 
 export default function Obstacles({ active, proximityRef, destroyedIdsRef, obstacleDataRef }: ObstaclesProps) {
-  const [obstacles, setObstacles] = useState<ObstacleData[]>([]);
+  /** React state holds immutable spawn snapshots — only changes when obstacles mount/unmount. */
+  const [mounted, setMounted] = useState<ObstacleSpawn[]>([]);
   const timerRef = useRef(0);
   const rigidBodies = useRef<Map<number, RapierRigidBody>>(new Map());
   const wasActive = useRef(false);
-  /** Mutable mirror of obstacle data — updated every frame without triggering re-renders. */
+  /** Mutable mirror of obstacle data — positions mutated every frame, never triggers re-renders. */
   const liveRef = useRef<ObstacleData[]>([]);
 
   useFrame((_, delta) => {
@@ -101,7 +113,7 @@ export default function Obstacles({ active, proximityRef, destroyedIdsRef, obsta
         destroyedIdsRef.current.clear();
         obstacleDataRef.current = [];
         liveRef.current = [];
-        setObstacles([]);
+        setMounted([]);
       }
       return;
     }
@@ -139,22 +151,32 @@ export default function Obstacles({ active, proximityRef, destroyedIdsRef, obsta
     }
     liveRef.current = next;
 
-    // Move rigid bodies OUTSIDE state updaters to avoid Rapier conflicts
+    // Move rigid bodies directly via refs — no React state involved
     for (const obs of next) {
       const rb = rigidBodies.current.get(obs.id);
       if (rb) {
         try {
           rb.setNextKinematicTranslation({ x: obs.x, y: obs.y, z: obs.z });
         } catch {
-          // Stale handle — body was removed during React re-render
           rigidBodies.current.delete(obs.id);
         }
       }
     }
 
-    // Only update React state when list membership changes (spawn/despawn)
+    // Only update React state when membership changes — use SPAWN positions (immutable)
     if (membershipChanged) {
-      setObstacles(next.map((o) => ({ ...o })));
+      // Build spawn-snapshot array: new spawns get their initial positions;
+      // existing obstacles keep their ORIGINAL spawn snapshot (never updated).
+      const spawnMap = new Map<number, ObstacleSpawn>();
+      // Preserve existing spawn data
+      for (const m of mounted) spawnMap.set(m.id, m);
+      // Add newly spawned with their initial positions
+      for (const s of spawned) {
+        spawnMap.set(s.id, { id: s.id, x: s.x, y: s.y, z: s.z, scale: s.scale, rotY: s.rotY });
+      }
+      // Filter to only alive ids
+      const aliveIds = new Set(next.map((o) => o.id));
+      setMounted(Array.from(spawnMap.values()).filter((m) => aliveIds.has(m.id)));
     }
 
     // Expose live obstacle data for projectile collisions (from ref, not stale state)
@@ -175,7 +197,7 @@ export default function Obstacles({ active, proximityRef, destroyedIdsRef, obsta
 
   return (
     <>
-      {obstacles.map((obs) => (
+      {mounted.map((obs) => (
         <RigidBody
           key={obs.id}
           type="kinematicPosition"

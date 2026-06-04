@@ -139,13 +139,13 @@ function EnergyGauge({ energy }: { energy: number }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
-        <span className="font-mono text-xs uppercase tracking-wider font-bold text-cyan-400/90">
+        <span className="font-mono text-sm uppercase tracking-wider font-bold text-cyan-400/90">
           Energía
         </span>
-        <span className="font-mono text-xs font-bold text-cyan-300/70">{pct.toFixed(0)}%</span>
+        <span className="font-mono text-xl font-bold text-cyan-300/70">{pct.toFixed(0)}%</span>
       </div>
       <div
-        className="relative h-4 w-44 sm:w-56 overflow-hidden border border-cyan-400/30 bg-zinc-900/60"
+        className="relative h-5 w-52 sm:w-64 overflow-hidden border border-cyan-400/30 bg-zinc-900/60"
         style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
       >
         <div
@@ -156,7 +156,7 @@ function EnergyGauge({ energy }: { energy: number }) {
         <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.15)_2px,rgba(0,0,0,0.15)_4px)]" />
       </div>
       {/* Mini ticks */}
-      <div className="flex justify-between w-44 sm:w-56">
+      <div className="flex justify-between w-52 sm:w-64">
         {[0, 25, 50, 75, 100].map((v) => (
           <span key={v} className="font-mono text-[8px] text-cyan-400/30">{v}</span>
         ))}
@@ -172,17 +172,17 @@ function WeaponHeatGauge({ heat }: { heat: number }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
-        <span className={`font-mono text-xs uppercase tracking-wider font-bold ${
+        <span className={`font-mono text-sm uppercase tracking-wider font-bold ${
           overheated ? "text-red-400 animate-pulse" : "text-orange-400/90"
         }`}>
           Arma
         </span>
-        <span className={`font-mono text-xs font-bold ${
+        <span className={`font-mono text-xl font-bold ${
           overheated ? "text-red-300" : "text-orange-300/70"
         }`}>{pct.toFixed(0)}%</span>
       </div>
       <div
-        className={`relative h-3.5 w-36 sm:w-44 overflow-hidden border bg-zinc-900/60 ${
+        className={`relative h-5 w-48 sm:w-56 overflow-hidden border bg-zinc-900/60 ${
           overheated ? "border-red-500/60" : "border-orange-400/30"
         }`}
         style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
@@ -207,15 +207,15 @@ function DistanceGauge({ distance }: { distance: number }) {
   const pct = Math.min(100, (distance / TARGET_DISTANCE) * 100);
   return (
     <div className="flex flex-col items-end gap-1">
-      <span className="font-mono text-xs uppercase tracking-wider font-bold text-fuchsia-400/90">
+      <span className="font-mono text-sm uppercase tracking-wider font-bold text-fuchsia-400/90">
         Distancia al Planeta
       </span>
-      <span className="font-mono text-3xl font-bold tabular-nums text-fuchsia-300 drop-shadow-[0_0_10px_rgba(232,121,249,0.6)]">
+      <span className="font-mono text-4xl font-bold tabular-nums text-fuchsia-300 drop-shadow-[0_0_10px_rgba(232,121,249,0.6)]">
         {remaining.toFixed(0)}
-        <span className="ml-1 text-xs font-normal text-fuchsia-300/50">m</span>
+        <span className="ml-1 text-sm font-normal text-fuchsia-300/50">m</span>
       </span>
       <div
-        className="relative h-2 w-28 sm:w-36 overflow-hidden border border-fuchsia-400/30 bg-zinc-900/60"
+        className="relative h-3 w-36 sm:w-48 overflow-hidden border border-fuchsia-400/30 bg-zinc-900/60"
         style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
       >
         <div
@@ -292,10 +292,10 @@ function ThrusterIndicators({ left, right }: { left: boolean; right: boolean }) 
 /* ─── FUI Overlay Container ─── */
 function FuiOverlay({ children }: { children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md">
+    <div className="fixed inset-0 w-screen h-screen z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
       {/* Central container with chamfered clip-path */}
       <div
-        className="relative flex flex-col items-center gap-6 px-12 py-10 border border-cyan-400/20 bg-zinc-950/80"
+        className="relative flex flex-col items-center gap-6 px-14 py-12 border border-cyan-400/20 bg-zinc-950/80"
         style={{
           clipPath:
             "polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px), 0 16px)",
@@ -317,10 +317,12 @@ function FuiButton({
   onClick,
   children,
   color = "cyan",
+  large = false,
 }: {
   onClick: () => void;
   children: React.ReactNode;
   color?: "cyan" | "fuchsia" | "red";
+  large?: boolean;
 }) {
   const colors = {
     cyan: "border-cyan-400/50 text-cyan-300 shadow-[0_0_20px_-4px_rgba(34,211,238,0.5)] hover:border-cyan-300 hover:bg-cyan-400/15 hover:shadow-[0_0_30px_0px_rgba(34,211,238,0.5)]",
@@ -330,7 +332,7 @@ function FuiButton({
   return (
     <button
       onClick={onClick}
-      className={`relative px-10 py-4 font-mono text-base uppercase tracking-[0.3em] bg-zinc-900/60 transition-all duration-200 active:scale-95 ${colors[color]}`}
+      className={`relative ${large ? "px-14 py-5 text-2xl" : "px-10 py-4 text-base"} font-mono uppercase tracking-[0.3em] bg-zinc-900/60 transition-all duration-200 active:scale-95 ${colors[color]}`}
       style={{
         clipPath:
           "polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px)",
@@ -356,7 +358,7 @@ function TargetingReticle({ onClick }: { onClick: () => void }) {
       <div className="absolute w-80 h-px bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
       <div className="absolute h-80 w-px bg-gradient-to-b from-transparent via-cyan-400/20 to-transparent" />
       {/* Center button */}
-      <FuiButton onClick={onClick}>Iniciar Misión</FuiButton>
+      <FuiButton onClick={onClick} large>Iniciar Misión</FuiButton>
     </div>
   );
 }
@@ -436,7 +438,7 @@ export default function GameHUD({
           <ProximityWarning active={proximity} />
           {/* Gauges in sci-fi panels */}
           <div className="absolute top-4 left-10 sm:left-12">
-            <div className="skew-x-[-12deg] bg-black/60 backdrop-blur-sm border border-cyan-500/50 px-5 py-3.5 shadow-[0_0_12px_-4px_rgba(34,211,238,0.3)]">
+            <div className="skew-x-[-12deg] bg-black/60 backdrop-blur-sm border border-cyan-500/50 px-7 py-5 min-w-[280px] shadow-[0_0_12px_-4px_rgba(34,211,238,0.3)]">
               <div className="skew-x-[12deg]">
                 <EnergyGauge energy={telemetry.energy} />
                 <div className="mt-2">
@@ -451,7 +453,7 @@ export default function GameHUD({
             </div>
           </div>
           <div className="absolute top-4 right-10 sm:right-12">
-            <div className="skew-x-[12deg] bg-black/60 backdrop-blur-sm border border-fuchsia-500/50 px-5 py-3.5 shadow-[0_0_12px_-4px_rgba(232,121,249,0.3)]">
+            <div className="skew-x-[12deg] bg-black/60 backdrop-blur-sm border border-fuchsia-500/50 px-7 py-5 min-w-[240px] shadow-[0_0_12px_-4px_rgba(232,121,249,0.3)]">
               <div className="skew-x-[-12deg]">
                 <DistanceGauge distance={telemetry.distance} />
               </div>
@@ -485,12 +487,16 @@ export default function GameHUD({
             {"// ARCADE SYNTHWAVE //"}
           </span>
           {/* Title */}
-          <h1 className="font-mono text-5xl sm:text-7xl font-black uppercase tracking-[0.4em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
+          <h1 className="font-mono text-6xl sm:text-8xl font-black uppercase tracking-[0.4em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
             Super Rocket
           </h1>
-          <p className="max-w-xs font-mono text-[11px] leading-relaxed text-zinc-500 text-center">
-            Esquiva los asteroides. Llega al planeta antes de quedarte sin energía.
-          </p>
+          {/* Mission Briefing */}
+          <div className="max-w-md px-4 py-3 border border-cyan-400/15 bg-cyan-950/20">
+            <span className="block font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-400/60 mb-1">{"// BRIEFING //"}</span>
+            <p className="font-mono text-sm leading-relaxed text-zinc-400 text-center">
+              MISIÓN: Atravesar el cinturón de asteroides del sector 7. Gestiona tu energía y el calentamiento de tus armas. Destruye asteroides para avanzar más rápido.
+            </p>
+          </div>
           {/* Targeting reticle with start button */}
           <TargetingReticle onClick={onStart} />
           {/* Bottom flourish */}
