@@ -14,7 +14,7 @@ import ScreenShake from "./ScreenShake";
 import SpeedLines from "./SpeedLines";
 import { DEFAULT_FOV } from "@/lib/physics";
 import type { KeyMap } from "@/lib/useKeyboard";
-import type { RefObject } from "react";
+import type { MutableRefObject, RefObject } from "react";
 import type { GameState } from "@/lib/types";
 import { WORLD_SPEED } from "@/lib/types";
 import { useFrame } from "@react-three/fiber";
@@ -25,6 +25,7 @@ interface SceneProps {
   keysRef: RefObject<KeyMap>;
   onCollision: () => void;
   onTick: (dt: number, distanceDelta: number) => void;
+  proximityRef: MutableRefObject<boolean>;
 }
 
 function GameLoop({
@@ -54,6 +55,7 @@ export default function Scene({
   keysRef,
   onCollision,
   onTick,
+  proximityRef,
 }: SceneProps) {
   const playing = gameState === "PLAYING";
   const playerPosRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
@@ -94,7 +96,7 @@ export default function Scene({
             onCollision={onCollision}
             playerPosRef={playerPosRef}
           />
-          <Obstacles active={playing} />
+          <Obstacles active={playing} proximityRef={proximityRef} />
         </Physics>
 
         <AlienShip
