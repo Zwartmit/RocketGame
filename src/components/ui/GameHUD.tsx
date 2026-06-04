@@ -108,6 +108,8 @@ function MobileControls({ keysRef }: { keysRef: RefObject<KeyMap> }) {
 
 /** Delay before showing the GAME_OVER overlay (let explosion play). */
 const GAME_OVER_DELAY = 1800;
+/** Delay before showing the VICTORY overlay (let warp animation play). */
+const VICTORY_DELAY = 2200;
 
 export default function GameHUD({
   state,
@@ -117,18 +119,27 @@ export default function GameHUD({
   onRestart,
 }: GameHUDProps) {
   const [showGameOver, setShowGameOver] = useState(false);
+  const [showVictory, setShowVictory] = useState(false);
   const prevState = useRef(state);
 
   useEffect(() => {
-    if (state === "GAME_OVER" && prevState.current !== "GAME_OVER") {
+    const prev = prevState.current;
+    prevState.current = state;
+
+    if (state === "GAME_OVER" && prev !== "GAME_OVER") {
       const timer = setTimeout(() => setShowGameOver(true), GAME_OVER_DELAY);
-      prevState.current = state;
       return () => clearTimeout(timer);
     }
-    if (state !== "GAME_OVER" && prevState.current === "GAME_OVER") {
+    if (state === "VICTORY" && prev !== "VICTORY") {
+      const timer = setTimeout(() => setShowVictory(true), VICTORY_DELAY);
+      return () => clearTimeout(timer);
+    }
+    if (state !== "GAME_OVER" && prev === "GAME_OVER") {
       setShowGameOver(false);
     }
-    prevState.current = state;
+    if (state !== "VICTORY" && prev === "VICTORY") {
+      setShowVictory(false);
+    }
   }, [state]);
 
   return (
@@ -189,8 +200,8 @@ export default function GameHUD({
         </Overlay>
       )}
 
-      {/* Pantalla de VICTORIA */}
-      {state === "VICTORY" && (
+      {/* Pantalla de VICTORIA (delayed until warp animation finishes) */}
+      {state === "VICTORY" && showVictory && (
         <Overlay>
           <h2 className="font-mono text-3xl font-black uppercase tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(232,121,249,0.5)] sm:text-4xl">
             ¡Victoria!

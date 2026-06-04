@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { EXHAUST_PARTICLE_COUNT as COUNT, MAX_FRAME_DT } from "@/lib/physics";
@@ -55,7 +55,15 @@ function createData(): ParticleData {
 export default function ExhaustParticles({ active }: { active: boolean }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const dataRef = useRef<ParticleData | null>(null);
-  const settled = useRef(false); // todas las partículas inactivas ya en escala cero
+  const settled = useRef(false);
+
+  useLayoutEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4().makeScale(0, 0, 0);
+    for (let i = 0; i < COUNT; i++) mesh.setMatrixAt(i, m);
+    mesh.instanceMatrix.needsUpdate = true;
+  }, []);
 
   useFrame((_, delta) => {
     const mesh = meshRef.current;

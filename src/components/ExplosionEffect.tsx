@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -40,6 +40,14 @@ export default function ExplosionEffect({ active }: { active: boolean }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const dataRef = useRef<ExplosionData | null>(null);
   const wasActive = useRef(false);
+
+  useLayoutEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4().makeScale(0, 0, 0);
+    for (let i = 0; i < PARTICLE_COUNT; i++) mesh.setMatrixAt(i, m);
+    mesh.instanceMatrix.needsUpdate = true;
+  }, []);
 
   useFrame((_, delta) => {
     const mesh = meshRef.current;
