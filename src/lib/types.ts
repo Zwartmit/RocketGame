@@ -7,6 +7,12 @@ export interface GameTelemetry {
   distance: number;
   /** Remaining energy 0–1 (decreases over time while PLAYING). */
   energy: number;
+  /** Weapon heat 0–1. Overheats at 1 and must cool down. */
+  weaponHeat: number;
+  /** Player score from destroying asteroids. */
+  score: number;
+  /** Whether the tactical shield is active. */
+  hasShield: boolean;
 }
 
 /** Target distance to reach the planet and win. */
@@ -38,3 +44,14 @@ export const LANE_LIMIT = 5;
 
 /** Drone mass for the RigidBody collider. */
 export const DRONE_MASS = 8;
+
+/* ─── Combat constants ─── */
+export const FIRE_RATE = 0.18;
+export const PROJECTILE_SPEED = 80;
+export const HEAT_PER_SHOT = 0.1;
+export const HEAT_COOLDOWN_PER_SEC = 0.12;
+export const ASTEROID_DESTROY_BONUS = 8;
+
+/* ─── Power-up constants ─── */
+export const POWERUP_INTERVAL = 5;
+export const ENERGY_CAPSULE_RESTORE = 0.2;

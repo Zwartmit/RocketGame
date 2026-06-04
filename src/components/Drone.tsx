@@ -5,6 +5,7 @@ import {
   useRef,
   useEffect,
   type RefObject,
+  type MutableRefObject,
 } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
@@ -16,6 +17,7 @@ import {
 import DroneModel from "./DroneModel";
 import DroneLoader from "./DroneLoader";
 import ExhaustParticles from "./ExhaustParticles";
+import ShieldBubble from "./ShieldBubble";
 import type { KeyMap } from "@/lib/useKeyboard";
 import {
   LATERAL_IMPULSE,
@@ -28,15 +30,22 @@ interface DroneProps {
   playing: boolean;
   keysRef: RefObject<KeyMap>;
   onCollision: () => void;
+  onShieldBreak: () => void;
+  hasShield: boolean;
   /** Mutable Vector3 updated each frame with the drone's world position. */
   playerPosRef: RefObject<THREE.Vector3>;
+  /** Set of asteroid IDs destroyed by shield impact — written by Drone */
+  shieldDestroyRef: MutableRefObject<Set<number>>;
 }
 
 export default function Drone({
   playing,
   keysRef,
   onCollision,
+  onShieldBreak,
+  hasShield,
   playerPosRef,
+  shieldDestroyRef,
 }: DroneProps) {
   const body = useRef<RapierRigidBody>(null);
   const collided = useRef(false);
@@ -67,8 +76,7 @@ export default function Drone({
     const pos = rb.translation();
     const vel = rb.linvel();
 
-    // Clamp lateral position via impulse (avoid setTranslation which
-    // triggers Rapier aliasing errors during forEachRigidBody)
+    // Clamp lateral position via impulse
     if (pos.x < -LANE_LIMIT) {
       rb.setLinvel({ x: Math.max(vel.x, 0), y: vel.y, z: vel.z }, true);
       rb.applyImpulse({ x: (-LANE_LIMIT - pos.x) * DRONE_MASS * 10, y: 0, z: 0 }, true);
@@ -80,16 +88,33 @@ export default function Drone({
     // Update player position ref for alien ship targeting
     playerPosRef.current.set(pos.x, pos.y, pos.z);
 
-    // Dampen vertical drift & Z drift purely via velocity (no setTranslation)
+    // Dampen vertical drift & Z drift purely via velocity
     const correctedVy = vel.y * 0.85 + (-pos.y * 8);
     const correctedVz = -pos.z * 8;
     rb.setLinvel({ x: vel.x, y: correctedVy, z: correctedVz }, true);
   });
 
-  const handleCollision = () => {
+  const handleCollision = (payload: { other: { rigidBody?: RapierRigidBody | null } }) => {
     if (collided.current) return;
-    collided.current = true;
-    onCollision();
+    const data = payload.other.rigidBody?.userData as Record<string, unknown> | undefined;
+    if (!data) return;
+
+    const isObstacle = data.obstacle === true;
+    const isMine = data.mine === true;
+    const isProjectile = data.ufoProjectile === true;
+
+    if (isObstacle || isMine || isProjectile) {
+      if (hasShield) {
+        // Shield absorbs hit
+        onShieldBreak();
+        if (isObstacle && typeof data.id === "number") {
+          shieldDestroyRef.current.add(data.id);
+        }
+        return;
+      }
+      collided.current = true;
+      onCollision();
+    }
   };
 
   return (
@@ -107,6 +132,7 @@ export default function Drone({
         <DroneModel />
       </Suspense>
       <ExhaustParticles active={playing} />
+      <ShieldBubble active={hasShield} />
     </RigidBody>
   );
 }

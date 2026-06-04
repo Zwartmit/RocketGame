@@ -24,7 +24,15 @@ let nextId = 0;
 
 const PROXIMITY_Z = -8;
 
-export default function Obstacles({ active, proximityRef }: { active: boolean; proximityRef: MutableRefObject<boolean> }) {
+interface ObstaclesProps {
+  active: boolean;
+  proximityRef: MutableRefObject<boolean>;
+  destroyedIdsRef: MutableRefObject<Set<number>>;
+  /** Live obstacle data exposed for projectile hit detection */
+  obstacleDataRef: MutableRefObject<{ id: number; x: number; z: number; scale: number }[]>;
+}
+
+export default function Obstacles({ active, proximityRef, destroyedIdsRef, obstacleDataRef }: ObstaclesProps) {
   const [obstacles, setObstacles] = useState<ObstacleData[]>([]);
   const timerRef = useRef(0);
   const rigidBodies = useRef<Map<number, RapierRigidBody>>(new Map());
@@ -36,6 +44,8 @@ export default function Obstacles({ active, proximityRef }: { active: boolean; p
         wasActive.current = false;
         timerRef.current = 0;
         rigidBodies.current.clear();
+        destroyedIdsRef.current.clear();
+        obstacleDataRef.current = [];
         setObstacles([]);
       }
       return;
@@ -57,10 +67,18 @@ export default function Obstacles({ active, proximityRef }: { active: boolean; p
     }
 
     const removeIds: number[] = [];
+    const destroyed = destroyedIdsRef.current;
+
     setObstacles((prev) => {
       const list = spawned ? [...prev, spawned] : prev;
       const next: ObstacleData[] = [];
       for (const obs of list) {
+        // Skip destroyed asteroids
+        if (destroyed.has(obs.id)) {
+          removeIds.push(obs.id);
+          destroyed.delete(obs.id);
+          continue;
+        }
         const newZ = obs.z + WORLD_SPEED * dt;
         if (newZ > OBSTACLE_DESPAWN_Z) {
           removeIds.push(obs.id);
@@ -74,6 +92,9 @@ export default function Obstacles({ active, proximityRef }: { active: boolean; p
       }
       return next;
     });
+
+    // Expose live obstacle data for projectile collisions
+    obstacleDataRef.current = obstacles.map((o) => ({ id: o.id, x: o.x, z: o.z, scale: o.scale }));
 
     // Check proximity for warning system
     let hasClose = false;
@@ -99,7 +120,7 @@ export default function Obstacles({ active, proximityRef }: { active: boolean; p
           ref={(ref: RapierRigidBody | null) => {
             if (ref) rigidBodies.current.set(obs.id, ref);
           }}
-          userData={{ obstacle: true }}
+          userData={{ obstacle: true, id: obs.id }}
         >
           <CuboidCollider
             args={[obs.scale * 5, obs.scale * 4.5, obs.scale * 4]}
