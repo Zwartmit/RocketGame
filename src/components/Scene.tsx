@@ -35,6 +35,7 @@ interface SceneProps {
   onAddScore: (pts: number) => void;
   onAddEnergy: (amount: number) => void;
   onCollectShield: () => void;
+  onCollectCoolant: () => void;
   weaponHeatRef: MutableRefObject<number>;
 }
 
@@ -90,6 +91,7 @@ export default function Scene({
   onAddScore,
   onAddEnergy,
   onCollectShield,
+  onCollectCoolant,
   weaponHeatRef,
 }: SceneProps) {
   const playing = gameState === "PLAYING";
@@ -185,6 +187,7 @@ export default function Scene({
           collectedIdsRef={collectedIdsRef}
           onCollectEnergy={handleCollectEnergy}
           onCollectShield={onCollectShield}
+          onCollectCoolant={onCollectCoolant}
         />
 
         <DestructionEffect handleRef={destructionRef} />

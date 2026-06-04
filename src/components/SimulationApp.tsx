@@ -20,6 +20,10 @@ export default function SimulationApp() {
     game.setShield(true);
   }, [game]);
 
+  const handleCollectCoolant = useCallback(() => {
+    weaponHeatRef.current = 0;
+  }, [weaponHeatRef]);
+
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-black">
       <Scene
@@ -34,6 +38,7 @@ export default function SimulationApp() {
         onAddScore={game.addScore}
         onAddEnergy={game.addEnergy}
         onCollectShield={handleCollectShield}
+        onCollectCoolant={handleCollectCoolant}
         weaponHeatRef={weaponHeatRef}
       />
       <GameHUD
