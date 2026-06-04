@@ -1,6 +1,6 @@
 "use client";
 
-import type { RefObject } from "react";
+import { useRef, useState, useEffect, type RefObject } from "react";
 import type { GameState, GameTelemetry } from "@/lib/types";
 import { TARGET_DISTANCE } from "@/lib/types";
 import type { KeyMap } from "@/lib/useKeyboard";
@@ -106,6 +106,9 @@ function MobileControls({ keysRef }: { keysRef: RefObject<KeyMap> }) {
   );
 }
 
+/** Delay before showing the GAME_OVER overlay (let explosion play). */
+const GAME_OVER_DELAY = 1800;
+
 export default function GameHUD({
   state,
   telemetry,
@@ -113,6 +116,21 @@ export default function GameHUD({
   onStart,
   onRestart,
 }: GameHUDProps) {
+  const [showGameOver, setShowGameOver] = useState(false);
+  const prevState = useRef(state);
+
+  useEffect(() => {
+    if (state === "GAME_OVER" && prevState.current !== "GAME_OVER") {
+      const timer = setTimeout(() => setShowGameOver(true), GAME_OVER_DELAY);
+      prevState.current = state;
+      return () => clearTimeout(timer);
+    }
+    if (state !== "GAME_OVER" && prevState.current === "GAME_OVER") {
+      setShowGameOver(false);
+    }
+    prevState.current = state;
+  }, [state]);
+
   return (
     <>
       {/* HUD en juego (visible durante PLAYING) */}
@@ -158,8 +176,8 @@ export default function GameHUD({
         <div className="fixed inset-0 z-40 bg-cyan-400/50 animate-warp-flash pointer-events-none" />
       )}
 
-      {/* Pantalla de GAME OVER */}
-      {state === "GAME_OVER" && (
+      {/* Pantalla de GAME OVER (delayed until explosion finishes) */}
+      {state === "GAME_OVER" && showGameOver && (
         <Overlay>
           <h2 className="font-mono text-3xl font-black uppercase tracking-[0.3em] text-red-400 drop-shadow-[0_0_16px_rgba(239,68,68,0.6)] sm:text-4xl">
             Fin del Juego
