@@ -7,7 +7,7 @@
 export const MAX_FRAME_DT = 0.05;
 
 /** Exhaust particle count. */
-export const EXHAUST_PARTICLE_COUNT = 60;
+export const EXHAUST_PARTICLE_COUNT = 30;
 
 /** Default camera FOV. */
 export const DEFAULT_FOV = 55;

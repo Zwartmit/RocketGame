@@ -11,16 +11,16 @@ const SPAWN_INTERVAL = 8;
 const UFO_SPEED = 6;
 /** How often (seconds) the UFO fires a projectile. */
 const FIRE_INTERVAL = 1.2;
-/** Projectile speed (units/s). */
-const PROJECTILE_SPEED = 18;
+/** Projectile downward speed (units/s). */
+const PROJECTILE_SPEED = 12;
 /** Max projectile lifetime (seconds). */
 const PROJECTILE_LIFETIME = 3;
 /** How close a projectile must be to the player to count as a hit. */
 const HIT_RADIUS = 1.2;
 /** Y height of the UFO. */
-const UFO_Y = 5;
+const UFO_Y = 3;
 /** Z position of the UFO (slightly ahead of the player). */
-const UFO_Z = -10;
+const UFO_Z = -15;
 /** X boundaries for spawn/despawn. */
 const X_LIMIT = 12;
 
@@ -89,16 +89,14 @@ export default function AlienShip({ active, onHitPlayer, playerPosRef }: AlienSh
         u.active = false;
       }
 
-      // Fire projectiles
+      // Fire projectiles straight down (not aimed at player)
       u.fireTimer -= dt;
       if (u.fireTimer <= 0 && u.active) {
         u.fireTimer = FIRE_INTERVAL;
         const origin = new THREE.Vector3(u.x, UFO_Y, UFO_Z);
-        const target = playerPosRef.current.clone();
-        const dir = target.sub(origin).normalize();
         projectiles.current.push({
           pos: origin,
-          vel: dir.multiplyScalar(PROJECTILE_SPEED),
+          vel: new THREE.Vector3(0, -PROJECTILE_SPEED, 0),
           life: PROJECTILE_LIFETIME,
         });
       }
