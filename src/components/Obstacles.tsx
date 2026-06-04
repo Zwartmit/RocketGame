@@ -89,6 +89,8 @@ export default function Obstacles({ active, proximityRef, destroyedIdsRef, obsta
   const timerRef = useRef(0);
   const rigidBodies = useRef<Map<number, RapierRigidBody>>(new Map());
   const wasActive = useRef(false);
+  /** Mutable mirror of obstacle data — updated every frame without triggering re-renders. */
+  const liveRef = useRef<ObstacleData[]>([]);
 
   useFrame((_, delta) => {
     if (!active) {
@@ -98,6 +100,7 @@ export default function Obstacles({ active, proximityRef, destroyedIdsRef, obsta
         rigidBodies.current.clear();
         destroyedIdsRef.current.clear();
         obstacleDataRef.current = [];
+        liveRef.current = [];
         setObstacles([]);
       }
       return;
@@ -112,38 +115,54 @@ export default function Obstacles({ active, proximityRef, destroyedIdsRef, obsta
       spawned = spawnWave(OBSTACLE_SPAWN_Z);
     }
 
-    const removeIds: number[] = [];
     const destroyed = destroyedIdsRef.current;
+    const current = spawned.length > 0 ? [...liveRef.current, ...spawned] : liveRef.current;
+    const next: ObstacleData[] = [];
+    const removeIds: number[] = [];
+    let membershipChanged = spawned.length > 0;
 
-    setObstacles((prev) => {
-      const list = spawned.length > 0 ? [...prev, ...spawned] : prev;
-      const next: ObstacleData[] = [];
-      for (const obs of list) {
-        if (destroyed.has(obs.id)) {
-          removeIds.push(obs.id);
-          destroyed.delete(obs.id);
-          continue;
-        }
-        const newZ = obs.z + WORLD_SPEED * dt;
-        if (newZ > OBSTACLE_DESPAWN_Z) {
-          removeIds.push(obs.id);
-          continue;
-        }
-        const rb = rigidBodies.current.get(obs.id);
-        if (rb) {
-          rb.setNextKinematicTranslation({ x: obs.x, y: obs.y, z: newZ });
-        }
-        next.push({ ...obs, z: newZ });
+    for (const obs of current) {
+      if (destroyed.has(obs.id)) {
+        removeIds.push(obs.id);
+        destroyed.delete(obs.id);
+        membershipChanged = true;
+        continue;
       }
-      return next;
-    });
+      const newZ = obs.z + WORLD_SPEED * dt;
+      if (newZ > OBSTACLE_DESPAWN_Z) {
+        removeIds.push(obs.id);
+        membershipChanged = true;
+        continue;
+      }
+      obs.z = newZ;
+      next.push(obs);
+    }
+    liveRef.current = next;
 
-    // Expose live obstacle data for projectile collisions
-    obstacleDataRef.current = obstacles.map((o) => ({ id: o.id, x: o.x, y: o.y, z: o.z, scale: o.scale }));
+    // Move rigid bodies OUTSIDE state updaters to avoid Rapier conflicts
+    for (const obs of next) {
+      const rb = rigidBodies.current.get(obs.id);
+      if (rb) {
+        try {
+          rb.setNextKinematicTranslation({ x: obs.x, y: obs.y, z: obs.z });
+        } catch {
+          // Stale handle — body was removed during React re-render
+          rigidBodies.current.delete(obs.id);
+        }
+      }
+    }
+
+    // Only update React state when list membership changes (spawn/despawn)
+    if (membershipChanged) {
+      setObstacles(next.map((o) => ({ ...o })));
+    }
+
+    // Expose live obstacle data for projectile collisions (from ref, not stale state)
+    obstacleDataRef.current = next.map((o) => ({ id: o.id, x: o.x, y: o.y, z: o.z, scale: o.scale }));
 
     // Check proximity for warning system
     let hasClose = false;
-    for (const obs of obstacles) {
+    for (const obs of next) {
       if (obs.z > PROXIMITY_Z && obs.z < 5) {
         hasClose = true;
         break;
