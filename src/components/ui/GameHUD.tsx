@@ -98,8 +98,11 @@ export default function GameHUD({
           </div>
           {/* Indicación inferior */}
           <div className="flex justify-center">
-            <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-zinc-500">
+            <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-zinc-500 hidden sm:inline">
               A/D o flechas para moverse
+            </span>
+            <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-zinc-500 sm:hidden">
+              Arrastra para moverse
             </span>
           </div>
         </div>
@@ -116,6 +119,16 @@ export default function GameHUD({
           </p>
           <NeonButton onClick={onStart}>Iniciar Juego</NeonButton>
         </Overlay>
+      )}
+
+      {/* Flash rojo en GAME OVER */}
+      {state === "GAME_OVER" && (
+        <div className="fixed inset-0 z-40 bg-red-500/40 animate-shake pointer-events-none" />
+      )}
+
+      {/* Flash cyan en VICTORIA */}
+      {state === "VICTORY" && (
+        <div className="fixed inset-0 z-40 bg-cyan-400/50 animate-warp-flash pointer-events-none" />
       )}
 
       {/* Pantalla de GAME OVER */}

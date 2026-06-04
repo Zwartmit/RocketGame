@@ -6,6 +6,9 @@ import { Physics } from "@react-three/rapier";
 import Drone from "./Drone";
 import NeonGrid from "./NeonGrid";
 import Obstacles from "./Obstacles";
+import ExplosionEffect from "./ExplosionEffect";
+import HyperspaceEffect from "./HyperspaceEffect";
+import ScreenShake from "./ScreenShake";
 import { DEFAULT_FOV } from "@/lib/physics";
 import type { KeyMap } from "@/lib/useKeyboard";
 import type { RefObject } from "react";
@@ -62,31 +65,36 @@ export default function Scene({
       <color attach="background" args={["#05060a"]} />
       <fog attach="fog" args={["#05060a", 30, 90]} />
 
-      <ambientLight intensity={0.3} />
-      <directionalLight
-        position={[5, 10, 5]}
-        intensity={1.8}
-        castShadow={false}
-      />
-      <directionalLight
-        position={[-8, -4, -6]}
-        intensity={0.5}
-        color="#d946ef"
-        castShadow={false}
-      />
-      <pointLight position={[0, 2, -20]} intensity={40} color="#06b6d4" distance={60} />
-
-      <Stars radius={100} depth={50} count={2000} factor={4} fade speed={0.3} />
-      <NeonGrid active={playing} />
-
-      <Physics gravity={[0, 0, 0]} interpolate>
-        <Drone
-          playing={playing}
-          keysRef={keysRef}
-          onCollision={onCollision}
+      <ScreenShake active={gameState === "GAME_OVER"}>
+        <ambientLight intensity={0.3} />
+        <directionalLight
+          position={[5, 10, 5]}
+          intensity={1.8}
+          castShadow={false}
         />
-        <Obstacles active={playing} />
-      </Physics>
+        <directionalLight
+          position={[-8, -4, -6]}
+          intensity={0.5}
+          color="#d946ef"
+          castShadow={false}
+        />
+        <pointLight position={[0, 2, -20]} intensity={40} color="#06b6d4" distance={60} />
+
+        <Stars radius={100} depth={50} count={2000} factor={4} fade speed={0.3} />
+        <NeonGrid active={playing} />
+
+        <Physics gravity={[0, 0, 0]} interpolate>
+          <Drone
+            playing={playing}
+            keysRef={keysRef}
+            onCollision={onCollision}
+          />
+          <Obstacles active={playing} />
+        </Physics>
+
+        <ExplosionEffect active={gameState === "GAME_OVER"} />
+        <HyperspaceEffect active={gameState === "VICTORY"} />
+      </ScreenShake>
 
       <GameLoop playing={playing} onTick={onTick} />
     </Canvas>
