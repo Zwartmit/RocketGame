@@ -22,7 +22,7 @@ function EnergyBar({ energy }: { energy: number }) {
   return (
     <div className="flex items-center gap-3">
       <span className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-cyan-300/80">
-        Energy
+        Energía
       </span>
       <div className="relative h-3 w-40 overflow-hidden rounded-full border border-cyan-400/30 bg-zinc-900/70 shadow-[0_0_12px_-4px_rgba(34,211,238,0.4)]">
         <div
@@ -43,7 +43,7 @@ function DistanceCounter({
   return (
     <div className="flex flex-col items-end">
       <span className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-fuchsia-300/80">
-        Distance to Planet
+        Distancia al Planeta
       </span>
       <span className="font-mono text-2xl font-bold tabular-nums text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.6)]">
         {remaining.toFixed(0)}
@@ -88,59 +88,59 @@ export default function GameHUD({
 }: GameHUDProps) {
   return (
     <>
-      {/* In-game HUD (always visible during PLAYING) */}
+      {/* HUD en juego (visible durante PLAYING) */}
       {state === "PLAYING" && (
         <div className="pointer-events-none fixed inset-0 z-30 flex flex-col justify-between p-4 sm:p-6">
-          {/* Top bar */}
+          {/* Barra superior */}
           <div className="flex items-start justify-between">
             <EnergyBar energy={telemetry.energy} />
             <DistanceCounter distance={telemetry.distance} />
           </div>
-          {/* Bottom hint */}
+          {/* Indicación inferior */}
           <div className="flex justify-center">
             <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-zinc-500">
-              A/D or Arrow Keys to move
+              A/D o flechas para moverse
             </span>
           </div>
         </div>
       )}
 
-      {/* START screen */}
+      {/* Pantalla de INICIO */}
       {state === "START" && (
         <Overlay>
           <h1 className="font-mono text-4xl font-black uppercase tracking-[0.4em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)] sm:text-5xl">
             Rocket Run
           </h1>
           <p className="max-w-xs font-mono text-xs leading-relaxed text-zinc-400">
-            Dodge the obstacles. Reach the planet before energy runs out.
+            Esquiva los obstáculos. Llega al planeta antes de quedarte sin energía.
           </p>
-          <NeonButton onClick={onStart}>Start Game</NeonButton>
+          <NeonButton onClick={onStart}>Iniciar Juego</NeonButton>
         </Overlay>
       )}
 
-      {/* GAME OVER screen */}
+      {/* Pantalla de GAME OVER */}
       {state === "GAME_OVER" && (
         <Overlay>
           <h2 className="font-mono text-3xl font-black uppercase tracking-[0.3em] text-red-400 drop-shadow-[0_0_16px_rgba(239,68,68,0.6)] sm:text-4xl">
-            Game Over
+            Fin del Juego
           </h2>
           <p className="font-mono text-sm text-zinc-400">
-            Distance: {telemetry.distance.toFixed(0)} m
+            Distancia: {telemetry.distance.toFixed(0)} m
           </p>
-          <NeonButton onClick={onRestart}>Restart</NeonButton>
+          <NeonButton onClick={onRestart}>Reiniciar</NeonButton>
         </Overlay>
       )}
 
-      {/* VICTORY screen */}
+      {/* Pantalla de VICTORIA */}
       {state === "VICTORY" && (
         <Overlay>
           <h2 className="font-mono text-3xl font-black uppercase tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(232,121,249,0.5)] sm:text-4xl">
-            Victory!
+            ¡Victoria!
           </h2>
           <p className="font-mono text-sm text-zinc-400">
-            You reached the planet!
+            ¡Llegaste al planeta!
           </p>
-          <NeonButton onClick={onRestart}>Play Again</NeonButton>
+          <NeonButton onClick={onRestart}>Jugar de Nuevo</NeonButton>
         </Overlay>
       )}
     </>

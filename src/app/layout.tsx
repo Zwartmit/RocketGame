@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rocket Run — Synthwave Arcade",
+  title: "Rocket Run — Arcade Synthwave",
   description:
-    "Dodge neon obstacles and reach the planet in this synthwave arcade game built with React Three Fiber and Rapier physics.",
+    "Esquiva obstáculos de neón y llega al planeta en este juego arcade synthwave construido con React Three Fiber y Rapier.",
   manifest: "/site.webmanifest",
   keywords: [
     "Arcade",
@@ -28,22 +28,22 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Brandon Urbano" }],
   openGraph: {
-    title: "Rocket Run — Synthwave Arcade",
-    description: "Dodge neon obstacles and reach the planet!",
+    title: "Rocket Run — Arcade Synthwave",
+    description: "¡Esquiva obstáculos de neón y llega al planeta!",
     type: "website",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Rocket Run — Synthwave Arcade",
+        alt: "Rocket Run — Arcade Synthwave",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rocket Run — Synthwave Arcade",
-    description: "Dodge neon obstacles and reach the planet!",
+    title: "Rocket Run — Arcade Synthwave",
+    description: "¡Esquiva obstáculos de neón y llega al planeta!",
     images: ["/og-image.jpg"],
   },
 };
@@ -55,7 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-[#05060a] text-zinc-100">
