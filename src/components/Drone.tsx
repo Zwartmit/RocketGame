@@ -85,7 +85,7 @@ export default function Drone({
       lockRotations
       onIntersectionEnter={handleCollision}
     >
-      <CuboidCollider args={[0.6, 0.35, 0.6]} mass={DRONE_MASS} sensor />
+      <CuboidCollider args={[0.6, 0.55, 1]} mass={DRONE_MASS} sensor />
       <Suspense fallback={<DroneLoader />}>
         <DroneModel />
       </Suspense>
