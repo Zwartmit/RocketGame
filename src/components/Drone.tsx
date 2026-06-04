@@ -55,25 +55,27 @@ export default function Drone({
       rb.applyImpulse({ x: impulseX, y: 0, z: 0 }, true);
     }
 
-    // Clamp lateral position
+    // Read position & velocity once (avoid repeated calls into WASM)
     const pos = rb.translation();
+    const vel = rb.linvel();
+
+    // Clamp lateral position via impulse (avoid setTranslation which
+    // triggers Rapier aliasing errors during forEachRigidBody)
     if (pos.x < -LANE_LIMIT) {
-      rb.setTranslation({ x: -LANE_LIMIT, y: pos.y, z: pos.z }, true);
-      rb.setLinvel({ x: 0, y: rb.linvel().y, z: rb.linvel().z }, true);
+      rb.setLinvel({ x: Math.max(vel.x, 0), y: vel.y, z: vel.z }, true);
+      rb.applyImpulse({ x: (-LANE_LIMIT - pos.x) * DRONE_MASS * 10, y: 0, z: 0 }, true);
     } else if (pos.x > LANE_LIMIT) {
-      rb.setTranslation({ x: LANE_LIMIT, y: pos.y, z: pos.z }, true);
-      rb.setLinvel({ x: 0, y: rb.linvel().y, z: rb.linvel().z }, true);
+      rb.setLinvel({ x: Math.min(vel.x, 0), y: vel.y, z: vel.z }, true);
+      rb.applyImpulse({ x: (LANE_LIMIT - pos.x) * DRONE_MASS * 10, y: 0, z: 0 }, true);
     }
 
     // Update player position ref for alien ship targeting
     playerPosRef.current.set(pos.x, pos.y, pos.z);
 
-    // Dampen vertical drift (keep drone roughly at y=0)
-    const vy = rb.linvel().y;
-    if (Math.abs(vy) > 0.01 || Math.abs(pos.y) > 0.1) {
-      rb.setLinvel({ x: rb.linvel().x, y: vy * 0.9, z: 0 }, true);
-      rb.setTranslation({ x: pos.x, y: pos.y * 0.95, z: 0 }, true);
-    }
+    // Dampen vertical drift & Z drift purely via velocity (no setTranslation)
+    const correctedVy = vel.y * 0.85 + (-pos.y * 8);
+    const correctedVz = -pos.z * 8;
+    rb.setLinvel({ x: vel.x, y: correctedVy, z: correctedVz }, true);
   });
 
   const handleCollision = () => {
