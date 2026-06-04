@@ -20,6 +20,7 @@ export default function SimulationApp() {
       <GameHUD
         state={game.state}
         telemetry={game.telemetry}
+        keysRef={keysRef}
         onStart={game.start}
         onRestart={game.restart}
       />

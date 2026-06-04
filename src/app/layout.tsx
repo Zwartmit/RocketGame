@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Rocket Run — Arcade Synthwave",
+  title: "Super Rocket — Arcade Synthwave",
   description:
     "Esquiva obstáculos de neón y llega al planeta en este juego arcade synthwave construido con React Three Fiber y Rapier.",
   manifest: "/site.webmanifest",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Brandon Urbano" }],
   openGraph: {
-    title: "Rocket Run — Arcade Synthwave",
+    title: "Super Rocket — Arcade Synthwave",
     description: "¡Esquiva obstáculos de neón y llega al planeta!",
     type: "website",
     images: [
@@ -36,13 +36,13 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Rocket Run — Arcade Synthwave",
+        alt: "Super Rocket — Arcade Synthwave",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rocket Run — Arcade Synthwave",
+    title: "Super Rocket — Arcade Synthwave",
     description: "¡Esquiva obstáculos de neón y llega al planeta!",
     images: ["/og-image.jpg"],
   },

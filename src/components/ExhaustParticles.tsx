@@ -25,13 +25,13 @@ function spawn(p: Particle) {
     (Math.random() - 0.5) * 0.25,
     NOZZLE_Z,
   );
-  // Emit backward (+Z) with conical spread.
+  // Emit backward (+Z) with tight conical spread.
   p.vel.set(
-    (Math.random() - 0.5) * 1.6,
-    (Math.random() - 0.5) * 1.6,
-    3 + Math.random() * 3,
+    (Math.random() - 0.5) * 0.8,
+    (Math.random() - 0.5) * 0.8,
+    2 + Math.random() * 2,
   );
-  p.maxLife = 0.4 + Math.random() * 0.5;
+  p.maxLife = 0.25 + Math.random() * 0.3;
   p.life = p.maxLife;
 }
 
@@ -68,7 +68,7 @@ export default function ExhaustParticles({ active }: { active: boolean }) {
     const data = (dataRef.current ??= createData());
     const { particles, dummy } = data;
     const dt = Math.min(delta, MAX_FRAME_DT);
-    let spawnBudget = active ? 6 : 0; // partículas nuevas por frame
+    let spawnBudget = active ? 4 : 0;
     let anyAlive = false;
 
     for (let i = 0; i < COUNT; i++) {
@@ -90,7 +90,7 @@ export default function ExhaustParticles({ active }: { active: boolean }) {
       p.life -= dt;
       p.pos.addScaledVector(p.vel, dt);
       const t = Math.max(p.life / p.maxLife, 0);
-      const scale = 0.18 * t;
+      const scale = 0.07 * t;
       anyAlive = true;
 
       dummy.position.copy(p.pos);
@@ -113,9 +113,9 @@ export default function ExhaustParticles({ active }: { active: boolean }) {
       <meshStandardMaterial
         color="#fdba74"
         emissive="#fb923c"
-        emissiveIntensity={2}
+        emissiveIntensity={1.5}
         transparent
-        opacity={0.9}
+        opacity={0.6}
         toneMapped={false}
       />
     </instancedMesh>

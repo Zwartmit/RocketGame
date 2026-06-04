@@ -1,4 +1,4 @@
-# Rocket Run — Arcade Synthwave
+# Super Rocket — Arcade Synthwave
 
 Juego arcade 3D con estética **Synthwave/Cyberpunk** donde pilotas una nave
 esquivando obstáculos de neón mientras avanzas hacia un planeta lejano.

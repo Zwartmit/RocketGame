@@ -1,11 +1,14 @@
 "use client";
 
+import type { RefObject } from "react";
 import type { GameState, GameTelemetry } from "@/lib/types";
 import { TARGET_DISTANCE } from "@/lib/types";
+import type { KeyMap } from "@/lib/useKeyboard";
 
 interface GameHUDProps {
   state: GameState;
   telemetry: GameTelemetry;
+  keysRef: RefObject<KeyMap>;
   onStart: () => void;
   onRestart: () => void;
 }
@@ -80,9 +83,33 @@ function NeonButton({
   );
 }
 
+function MobileControls({ keysRef }: { keysRef: RefObject<KeyMap> }) {
+  return (
+    <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-between px-6 sm:hidden">
+      <button
+        className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-400/40 bg-cyan-500/10 text-2xl text-cyan-300 shadow-[0_0_16px_-4px_rgba(34,211,238,0.4)] active:bg-cyan-400/30 active:scale-90 select-none touch-none"
+        onTouchStart={() => { keysRef.current.left = true; }}
+        onTouchEnd={() => { keysRef.current.left = false; }}
+        onTouchCancel={() => { keysRef.current.left = false; }}
+      >
+        ◀
+      </button>
+      <button
+        className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-400/40 bg-cyan-500/10 text-2xl text-cyan-300 shadow-[0_0_16px_-4px_rgba(34,211,238,0.4)] active:bg-cyan-400/30 active:scale-90 select-none touch-none"
+        onTouchStart={() => { keysRef.current.right = true; }}
+        onTouchEnd={() => { keysRef.current.right = false; }}
+        onTouchCancel={() => { keysRef.current.right = false; }}
+      >
+        ▶
+      </button>
+    </div>
+  );
+}
+
 export default function GameHUD({
   state,
   telemetry,
+  keysRef,
   onStart,
   onRestart,
 }: GameHUDProps) {
@@ -96,23 +123,23 @@ export default function GameHUD({
             <EnergyBar energy={telemetry.energy} />
             <DistanceCounter distance={telemetry.distance} />
           </div>
-          {/* Indicación inferior */}
-          <div className="flex justify-center">
-            <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-zinc-500 hidden sm:inline">
+          {/* Indicación inferior (solo desktop) */}
+          <div className="hidden sm:flex justify-center">
+            <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-zinc-500">
               A/D o flechas para moverse
-            </span>
-            <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-zinc-500 sm:hidden">
-              Arrastra para moverse
             </span>
           </div>
         </div>
       )}
 
+      {/* Botones móviles durante PLAYING */}
+      {state === "PLAYING" && <MobileControls keysRef={keysRef} />}
+
       {/* Pantalla de INICIO */}
       {state === "START" && (
         <Overlay>
           <h1 className="font-mono text-4xl font-black uppercase tracking-[0.4em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)] sm:text-5xl">
-            Rocket Run
+            Super Rocket
           </h1>
           <p className="max-w-xs font-mono text-xs leading-relaxed text-zinc-400">
             Esquiva los obstáculos. Llega al planeta antes de quedarte sin energía.
