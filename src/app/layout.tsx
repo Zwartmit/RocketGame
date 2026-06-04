@@ -13,41 +13,37 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://leynewton.devmit-tech.com"),
-  title: {
-    default: "Laboratorio 3D: Segunda Ley de Newton",
-    template: "%s | Laboratorio de Física",
-  },
+  title: "Rocket Run — Synthwave Arcade",
   description:
-    "Simulador interactivo en 3D para comprobar la Segunda Ley de Newton (Dinámica). Modifica la fuerza y la masa en gravedad cero y observa la aceleración en tiempo real.",
+    "Dodge neon obstacles and reach the planet in this synthwave arcade game built with React Three Fiber and Rapier physics.",
   manifest: "/site.webmanifest",
   keywords: [
-    "Física",
-    "Segunda Ley de Newton",
-    "Simulador 3D",
+    "Arcade",
+    "Synthwave",
+    "Cyberpunk",
     "React Three Fiber",
-    "Educación",
-    "Dinámica",
-    "Gravedad Cero",
+    "Rapier",
+    "3D Game",
+    "Hackathon",
   ],
   authors: [{ name: "Brandon Urbano" }],
   openGraph: {
-    title: "Laboratorio 3D: Segunda Ley de Newton",
-    description: "Experimento interactivo de cinemática y dinámica en 3D.",
+    title: "Rocket Run — Synthwave Arcade",
+    description: "Dodge neon obstacles and reach the planet!",
     type: "website",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Laboratorio 3D: Segunda Ley de Newton",
+        alt: "Rocket Run — Synthwave Arcade",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Laboratorio 3D: Segunda Ley de Newton",
-    description: "Experimento interactivo de cinemática y dinámica en 3D.",
+    title: "Rocket Run — Synthwave Arcade",
+    description: "Dodge neon obstacles and reach the planet!",
     images: ["/og-image.jpg"],
   },
 };
@@ -59,10 +55,10 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="es"
+      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-black text-zinc-100">
+      <body className="min-h-full bg-[#05060a] text-zinc-100">
         {children}
       </body>
     </html>
