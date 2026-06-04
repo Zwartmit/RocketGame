@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useRef, useState, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import { RigidBody, CuboidCollider, type RapierRigidBody } from "@react-three/rapier";
 import AsteroidModel from "./AsteroidModel";
@@ -22,7 +22,9 @@ interface ObstacleData {
 
 let nextId = 0;
 
-export default function Obstacles({ active }: { active: boolean }) {
+const PROXIMITY_Z = -8;
+
+export default function Obstacles({ active, proximityRef }: { active: boolean; proximityRef: MutableRefObject<boolean> }) {
   const [obstacles, setObstacles] = useState<ObstacleData[]>([]);
   const timerRef = useRef(0);
   const rigidBodies = useRef<Map<number, RapierRigidBody>>(new Map());
@@ -73,6 +75,16 @@ export default function Obstacles({ active }: { active: boolean }) {
       return next;
     });
 
+    // Check proximity for warning system
+    let hasClose = false;
+    for (const obs of obstacles) {
+      if (obs.z > PROXIMITY_Z && obs.z < 5) {
+        hasClose = true;
+        break;
+      }
+    }
+    proximityRef.current = hasClose;
+
     for (const id of removeIds) rigidBodies.current.delete(id);
   });
 
@@ -90,7 +102,7 @@ export default function Obstacles({ active }: { active: boolean }) {
           userData={{ obstacle: true }}
         >
           <CuboidCollider
-            args={[obs.scale * 1.2, obs.scale * 1.2, obs.scale * 1.2]}
+            args={[obs.scale * 5, obs.scale * 4.5, obs.scale * 4]}
             sensor
           />
           <group rotation={[0, obs.rotY, 0]}>

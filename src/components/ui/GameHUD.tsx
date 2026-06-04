@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, type RefObject } from "react";
+import { useRef, useState, useEffect, type RefObject, type MutableRefObject } from "react";
 import type { GameState, GameTelemetry } from "@/lib/types";
 import { TARGET_DISTANCE } from "@/lib/types";
 import type { KeyMap } from "@/lib/useKeyboard";
@@ -11,6 +11,7 @@ interface GameHUDProps {
   keysRef: RefObject<KeyMap>;
   onStart: () => void;
   onRestart: () => void;
+  proximityRef: MutableRefObject<boolean>;
 }
 
 /* ─── Corner Brackets ─── */
@@ -62,16 +63,84 @@ function AmbientTelemetry() {
   );
 }
 
+/* ─── CSS Vignette ─── */
+function Vignette() {
+  return (
+    <div
+      className="fixed inset-0 pointer-events-none z-20"
+      style={{
+        background:
+          "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 80%, rgba(0,0,0,0.85) 100%)",
+      }}
+    />
+  );
+}
+
+/* ─── Vertical Data Bars (left & right edges) ─── */
+function VerticalDataBars() {
+  const segments = 12;
+  return (
+    <>
+      {/* Left bar */}
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col gap-[3px] pointer-events-none select-none">
+        {Array.from({ length: segments }).map((_, i) => (
+          <div
+            key={`l${i}`}
+            className="w-[3px] h-4 rounded-sm"
+            style={{
+              background: i < segments / 2
+                ? `rgba(34,211,238,${0.15 + (i / segments) * 0.4})`
+                : `rgba(232,121,249,${0.15 + ((segments - i) / segments) * 0.4})`,
+              animation: `pulse-glow ${1.5 + i * 0.2}s ease-in-out infinite`,
+            }}
+          />
+        ))}
+      </div>
+      {/* Right bar */}
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-[3px] pointer-events-none select-none">
+        {Array.from({ length: segments }).map((_, i) => (
+          <div
+            key={`r${i}`}
+            className="w-[3px] h-4 rounded-sm"
+            style={{
+              background: i < segments / 2
+                ? `rgba(232,121,249,${0.15 + (i / segments) * 0.4})`
+                : `rgba(34,211,238,${0.15 + ((segments - i) / segments) * 0.4})`,
+              animation: `pulse-glow ${1.8 + i * 0.15}s ease-in-out infinite`,
+            }}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ─── Central Reticle (faint cyan crosshair) ─── */
+function CentralReticle() {
+  return (
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none">
+      {/* Horizontal line */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-px bg-gradient-to-r from-transparent via-cyan-400/25 to-transparent" />
+      {/* Vertical line */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-16 w-px bg-gradient-to-b from-transparent via-cyan-400/25 to-transparent" />
+      {/* Center dot */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-cyan-400/30 shadow-[0_0_6px_rgba(34,211,238,0.4)]" />
+      {/* Corner ticks */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 border border-cyan-400/10 rounded-full" />
+    </div>
+  );
+}
+
 /* ─── Energy Gauge (angled tech bar with gradient) ─── */
 function EnergyGauge({ energy }: { energy: number }) {
   const pct = Math.max(0, Math.min(100, energy * 100));
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-cyan-400/70">
+        <span className="font-mono text-[10px] uppercase tracking-wider font-semibold text-cyan-400/90">
           Energía
         </span>
-        <span className="font-mono text-[9px] text-cyan-300/50">{pct.toFixed(0)}%</span>
+        <span className="font-mono text-[10px] font-semibold text-cyan-300/70">{pct.toFixed(0)}%</span>
       </div>
       <div
         className="relative h-3 w-36 sm:w-44 overflow-hidden border border-cyan-400/30 bg-zinc-900/60"
@@ -100,7 +169,7 @@ function DistanceGauge({ distance }: { distance: number }) {
   const pct = Math.min(100, (distance / TARGET_DISTANCE) * 100);
   return (
     <div className="flex flex-col items-end gap-1">
-      <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-fuchsia-400/70">
+      <span className="font-mono text-[10px] uppercase tracking-wider font-semibold text-fuchsia-400/90">
         Distancia al Planeta
       </span>
       <span className="font-mono text-2xl font-bold tabular-nums text-fuchsia-300 drop-shadow-[0_0_10px_rgba(232,121,249,0.6)]">
@@ -118,6 +187,67 @@ function DistanceGauge({ distance }: { distance: number }) {
         <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.15)_2px,rgba(0,0,0,0.15)_4px)]" />
       </div>
     </div>
+  );
+}
+
+/* ─── Proximity Warning ─── */
+function ProximityWarning({ active }: { active: boolean }) {
+  if (!active) return null;
+  return (
+    <div className="absolute bottom-20 sm:bottom-16 left-1/2 -translate-x-1/2 animate-pulse">
+      <div className="px-5 py-2 bg-red-950/70 backdrop-blur-sm border border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+        <span className="font-mono text-xs sm:text-sm font-bold uppercase tracking-wider text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]">
+          ⚠ PROXIMITY ALERT — EVADE
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Thruster Indicators ─── */
+function ThrusterIndicators({ left, right }: { left: boolean; right: boolean }) {
+  const chevrons = 4;
+  return (
+    <>
+      {/* Left thruster */}
+      <div className="absolute left-5 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 pointer-events-none select-none">
+        {Array.from({ length: chevrons }).map((_, i) => (
+          <div
+            key={`lt${i}`}
+            className="w-3 h-3 transition-all duration-75"
+            style={{
+              clipPath: "polygon(100% 0, 0 50%, 100% 100%)",
+              background: left
+                ? `rgba(34,211,238,${0.5 + i * 0.15})`
+                : "rgba(34,211,238,0.08)",
+              boxShadow: left ? "0 0 8px rgba(34,211,238,0.6)" : "none",
+            }}
+          />
+        ))}
+        <span className={`font-mono text-[8px] uppercase tracking-wider mt-1 transition-colors duration-75 ${
+          left ? "text-cyan-300" : "text-cyan-400/20"
+        }`}>L</span>
+      </div>
+      {/* Right thruster */}
+      <div className="absolute right-5 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 pointer-events-none select-none">
+        {Array.from({ length: chevrons }).map((_, i) => (
+          <div
+            key={`rt${i}`}
+            className="w-3 h-3 transition-all duration-75"
+            style={{
+              clipPath: "polygon(0 0, 100% 50%, 0 100%)",
+              background: right
+                ? `rgba(232,121,249,${0.5 + i * 0.15})`
+                : "rgba(232,121,249,0.08)",
+              boxShadow: right ? "0 0 8px rgba(232,121,249,0.6)" : "none",
+            }}
+          />
+        ))}
+        <span className={`font-mono text-[8px] uppercase tracking-wider mt-1 transition-colors duration-75 ${
+          right ? "text-fuchsia-300" : "text-fuchsia-400/20"
+        }`}>R</span>
+      </div>
+    </>
   );
 }
 
@@ -239,10 +369,28 @@ export default function GameHUD({
   keysRef,
   onStart,
   onRestart,
+  proximityRef,
 }: GameHUDProps) {
   const [showGameOver, setShowGameOver] = useState(false);
   const [showVictory, setShowVictory] = useState(false);
+  const [proximity, setProximity] = useState(false);
+  const [thrusterL, setThrusterL] = useState(false);
+  const [thrusterR, setThrusterR] = useState(false);
   const prevState = useRef(state);
+
+  // Poll keysRef and proximityRef via RAF
+  useEffect(() => {
+    if (state !== "PLAYING") return;
+    let raf = 0;
+    const loop = () => {
+      setProximity(proximityRef.current);
+      setThrusterL(keysRef.current.left);
+      setThrusterR(keysRef.current.right);
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [state, proximityRef, keysRef]);
 
   useEffect(() => {
     const prev = prevState.current;
@@ -267,16 +415,31 @@ export default function GameHUD({
   return (
     <>
       {/* ── Playing HUD ── */}
+      {/* Always-on vignette */}
+      <Vignette />
+
       {state === "PLAYING" && (
         <div className="pointer-events-none fixed inset-0 z-30">
           <CornerBrackets />
           <AmbientTelemetry />
-          {/* Gauges */}
-          <div className="absolute top-5 left-12 sm:left-14">
-            <EnergyGauge energy={telemetry.energy} />
+          <VerticalDataBars />
+          <CentralReticle />
+          <ThrusterIndicators left={thrusterL} right={thrusterR} />
+          <ProximityWarning active={proximity} />
+          {/* Gauges in sci-fi panels */}
+          <div className="absolute top-4 left-10 sm:left-12">
+            <div className="skew-x-[-12deg] bg-black/60 backdrop-blur-sm border border-cyan-500/50 px-4 py-2.5 shadow-[0_0_12px_-4px_rgba(34,211,238,0.3)]">
+              <div className="skew-x-[12deg]">
+                <EnergyGauge energy={telemetry.energy} />
+              </div>
+            </div>
           </div>
-          <div className="absolute top-5 right-12 sm:right-14">
-            <DistanceGauge distance={telemetry.distance} />
+          <div className="absolute top-4 right-10 sm:right-12">
+            <div className="skew-x-[12deg] bg-black/60 backdrop-blur-sm border border-fuchsia-500/50 px-4 py-2.5 shadow-[0_0_12px_-4px_rgba(232,121,249,0.3)]">
+              <div className="skew-x-[-12deg]">
+                <DistanceGauge distance={telemetry.distance} />
+              </div>
+            </div>
           </div>
           {/* Controls hint (desktop only) */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden sm:block">

@@ -3,6 +3,7 @@
 import {
   Suspense,
   useRef,
+  useEffect,
   type RefObject,
 } from "react";
 import * as THREE from "three";
@@ -39,6 +40,13 @@ export default function Drone({
 }: DroneProps) {
   const body = useRef<RapierRigidBody>(null);
   const collided = useRef(false);
+
+  // Reset collision flag when game restarts
+  useEffect(() => {
+    if (!playing) {
+      collided.current = false;
+    }
+  }, [playing]);
 
   useFrame((_, delta) => {
     const rb = body.current;
