@@ -42,6 +42,13 @@ export const OBSTACLE_DESPAWN_Z = 15;
 /** Lane boundaries for the drone (X). */
 export const LANE_LIMIT = 5;
 
+/** Vertical boundaries for the drone (Y). */
+export const Y_LIMIT_MIN = -0.5;
+export const Y_LIMIT_MAX = 5;
+
+/** Vertical impulse magnitude applied per frame while a key is held. */
+export const VERTICAL_IMPULSE = 50;
+
 /** Drone mass for the RigidBody collider. */
 export const DRONE_MASS = 8;
 

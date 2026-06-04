@@ -4,6 +4,7 @@ import { useRef, useState, useEffect, type RefObject, type MutableRefObject } fr
 import type { GameState, GameTelemetry } from "@/lib/types";
 import { TARGET_DISTANCE } from "@/lib/types";
 import type { KeyMap } from "@/lib/useKeyboard";
+import VirtualJoystick from "./VirtualJoystick";
 
 interface GameHUDProps {
   state: GameState;
@@ -138,13 +139,13 @@ function EnergyGauge({ energy }: { energy: number }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
-        <span className="font-mono text-[10px] uppercase tracking-wider font-semibold text-cyan-400/90">
+        <span className="font-mono text-xs uppercase tracking-wider font-bold text-cyan-400/90">
           Energía
         </span>
-        <span className="font-mono text-[10px] font-semibold text-cyan-300/70">{pct.toFixed(0)}%</span>
+        <span className="font-mono text-xs font-bold text-cyan-300/70">{pct.toFixed(0)}%</span>
       </div>
       <div
-        className="relative h-3 w-36 sm:w-44 overflow-hidden border border-cyan-400/30 bg-zinc-900/60"
+        className="relative h-4 w-44 sm:w-56 overflow-hidden border border-cyan-400/30 bg-zinc-900/60"
         style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
       >
         <div
@@ -155,9 +156,9 @@ function EnergyGauge({ energy }: { energy: number }) {
         <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.15)_2px,rgba(0,0,0,0.15)_4px)]" />
       </div>
       {/* Mini ticks */}
-      <div className="flex justify-between w-36 sm:w-44">
+      <div className="flex justify-between w-44 sm:w-56">
         {[0, 25, 50, 75, 100].map((v) => (
-          <span key={v} className="font-mono text-[7px] text-cyan-400/30">{v}</span>
+          <span key={v} className="font-mono text-[8px] text-cyan-400/30">{v}</span>
         ))}
       </div>
     </div>
@@ -171,17 +172,17 @@ function WeaponHeatGauge({ heat }: { heat: number }) {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
-        <span className={`font-mono text-[10px] uppercase tracking-wider font-semibold ${
+        <span className={`font-mono text-xs uppercase tracking-wider font-bold ${
           overheated ? "text-red-400 animate-pulse" : "text-orange-400/90"
         }`}>
           Arma
         </span>
-        <span className={`font-mono text-[10px] font-semibold ${
+        <span className={`font-mono text-xs font-bold ${
           overheated ? "text-red-300" : "text-orange-300/70"
         }`}>{pct.toFixed(0)}%</span>
       </div>
       <div
-        className={`relative h-2.5 w-28 sm:w-36 overflow-hidden border bg-zinc-900/60 ${
+        className={`relative h-3.5 w-36 sm:w-44 overflow-hidden border bg-zinc-900/60 ${
           overheated ? "border-red-500/60" : "border-orange-400/30"
         }`}
         style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
@@ -206,10 +207,10 @@ function DistanceGauge({ distance }: { distance: number }) {
   const pct = Math.min(100, (distance / TARGET_DISTANCE) * 100);
   return (
     <div className="flex flex-col items-end gap-1">
-      <span className="font-mono text-[10px] uppercase tracking-wider font-semibold text-fuchsia-400/90">
+      <span className="font-mono text-xs uppercase tracking-wider font-bold text-fuchsia-400/90">
         Distancia al Planeta
       </span>
-      <span className="font-mono text-2xl font-bold tabular-nums text-fuchsia-300 drop-shadow-[0_0_10px_rgba(232,121,249,0.6)]">
+      <span className="font-mono text-3xl font-bold tabular-nums text-fuchsia-300 drop-shadow-[0_0_10px_rgba(232,121,249,0.6)]">
         {remaining.toFixed(0)}
         <span className="ml-1 text-xs font-normal text-fuchsia-300/50">m</span>
       </span>
@@ -329,7 +330,7 @@ function FuiButton({
   return (
     <button
       onClick={onClick}
-      className={`relative px-8 py-3 font-mono text-sm uppercase tracking-[0.3em] bg-zinc-900/60 transition-all duration-200 active:scale-95 ${colors[color]}`}
+      className={`relative px-10 py-4 font-mono text-base uppercase tracking-[0.3em] bg-zinc-900/60 transition-all duration-200 active:scale-95 ${colors[color]}`}
       style={{
         clipPath:
           "polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px)",
@@ -346,49 +347,16 @@ function TargetingReticle({ onClick }: { onClick: () => void }) {
   return (
     <div className="relative flex items-center justify-center">
       {/* Outer ring — slow spin */}
-      <div className="absolute w-52 h-52 rounded-full border-2 border-dashed border-cyan-400/25 animate-[spin_20s_linear_infinite]" />
+      <div className="absolute w-72 h-72 rounded-full border-2 border-dashed border-cyan-400/25 animate-[spin_20s_linear_infinite]" />
       {/* Middle ring — reverse spin */}
-      <div className="absolute w-40 h-40 rounded-full border border-dashed border-fuchsia-400/30 animate-[spin_15s_linear_infinite_reverse]" />
+      <div className="absolute w-56 h-56 rounded-full border border-dashed border-fuchsia-400/30 animate-[spin_15s_linear_infinite_reverse]" />
       {/* Inner ring */}
-      <div className="absolute w-28 h-28 rounded-full border border-cyan-400/20 animate-[spin_10s_linear_infinite]" />
+      <div className="absolute w-40 h-40 rounded-full border border-cyan-400/20 animate-[spin_10s_linear_infinite]" />
       {/* Crosshairs */}
-      <div className="absolute w-56 h-px bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
-      <div className="absolute h-56 w-px bg-gradient-to-b from-transparent via-cyan-400/20 to-transparent" />
+      <div className="absolute w-80 h-px bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+      <div className="absolute h-80 w-px bg-gradient-to-b from-transparent via-cyan-400/20 to-transparent" />
       {/* Center button */}
       <FuiButton onClick={onClick}>Iniciar Misión</FuiButton>
-    </div>
-  );
-}
-
-/* ─── Mobile Controls ─── */
-function MobileControls({ keysRef }: { keysRef: RefObject<KeyMap> }) {
-  const btnBase =
-    "flex h-16 w-16 items-center justify-center text-2xl select-none touch-none bg-zinc-900/50 active:scale-90 transition-transform";
-  const btnStyle = {
-    clipPath:
-      "polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px)",
-    border: "1px solid rgba(34,211,238,0.3)",
-  };
-  return (
-    <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-between px-6 sm:hidden">
-      <button
-        className={`${btnBase} text-cyan-300 shadow-[0_0_12px_-4px_rgba(34,211,238,0.4)]`}
-        style={btnStyle}
-        onTouchStart={() => { keysRef.current.left = true; }}
-        onTouchEnd={() => { keysRef.current.left = false; }}
-        onTouchCancel={() => { keysRef.current.left = false; }}
-      >
-        ◀
-      </button>
-      <button
-        className={`${btnBase} text-cyan-300 shadow-[0_0_12px_-4px_rgba(34,211,238,0.4)]`}
-        style={btnStyle}
-        onTouchStart={() => { keysRef.current.right = true; }}
-        onTouchEnd={() => { keysRef.current.right = false; }}
-        onTouchCancel={() => { keysRef.current.right = false; }}
-      >
-        ▶
-      </button>
     </div>
   );
 }
@@ -468,7 +436,7 @@ export default function GameHUD({
           <ProximityWarning active={proximity} />
           {/* Gauges in sci-fi panels */}
           <div className="absolute top-4 left-10 sm:left-12">
-            <div className="skew-x-[-12deg] bg-black/60 backdrop-blur-sm border border-cyan-500/50 px-4 py-2.5 shadow-[0_0_12px_-4px_rgba(34,211,238,0.3)]">
+            <div className="skew-x-[-12deg] bg-black/60 backdrop-blur-sm border border-cyan-500/50 px-5 py-3.5 shadow-[0_0_12px_-4px_rgba(34,211,238,0.3)]">
               <div className="skew-x-[12deg]">
                 <EnergyGauge energy={telemetry.energy} />
                 <div className="mt-2">
@@ -483,7 +451,7 @@ export default function GameHUD({
             </div>
           </div>
           <div className="absolute top-4 right-10 sm:right-12">
-            <div className="skew-x-[12deg] bg-black/60 backdrop-blur-sm border border-fuchsia-500/50 px-4 py-2.5 shadow-[0_0_12px_-4px_rgba(232,121,249,0.3)]">
+            <div className="skew-x-[12deg] bg-black/60 backdrop-blur-sm border border-fuchsia-500/50 px-5 py-3.5 shadow-[0_0_12px_-4px_rgba(232,121,249,0.3)]">
               <div className="skew-x-[-12deg]">
                 <DistanceGauge distance={telemetry.distance} />
               </div>
@@ -500,14 +468,14 @@ export default function GameHUD({
           )}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden sm:block">
             <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-zinc-500/60">
-              A/D para moverse · ESPACIO para disparar
+              WASD para moverse · ESPACIO para disparar
             </span>
           </div>
         </div>
       )}
 
-      {/* Mobile buttons */}
-      {state === "PLAYING" && <MobileControls keysRef={keysRef} />}
+      {/* Mobile virtual joystick */}
+      {state === "PLAYING" && <VirtualJoystick keysRef={keysRef} />}
 
       {/* ── Start Screen ── */}
       {state === "START" && (
@@ -517,7 +485,7 @@ export default function GameHUD({
             {"// ARCADE SYNTHWAVE //"}
           </span>
           {/* Title */}
-          <h1 className="font-mono text-4xl sm:text-5xl font-black uppercase tracking-[0.4em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
+          <h1 className="font-mono text-5xl sm:text-7xl font-black uppercase tracking-[0.4em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
             Super Rocket
           </h1>
           <p className="max-w-xs font-mono text-[11px] leading-relaxed text-zinc-500 text-center">

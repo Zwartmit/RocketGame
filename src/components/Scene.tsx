@@ -97,7 +97,7 @@ export default function Scene({
   const destroyedIdsRef = useRef<Set<number>>(new Set());
   const shieldDestroyRef = useRef<Set<number>>(new Set());
   const collectedIdsRef = useRef<Set<number>>(new Set());
-  const obstacleDataRef = useRef<{ id: number; x: number; z: number; scale: number }[]>([]);
+  const obstacleDataRef = useRef<{ id: number; x: number; y: number; z: number; scale: number }[]>([]);
   const destructionRef = useRef<DestructionEffectHandle | null>(null);
 
   // Merge shield-destroyed asteroids into the destroyed set each frame
@@ -131,8 +131,8 @@ export default function Scene({
       gl={{ antialias: false, powerPreference: "high-performance" }}
       className="!fixed inset-0"
     >
-      <color attach="background" args={["#05060a"]} />
-      <fog attach="fog" args={["#05060a", 30, 90]} />
+      <color attach="background" args={["#050510"]} />
+      <fog attach="fog" args={["#050510", 50, 150]} />
 
       <ScreenShake active={gameState === "GAME_OVER"}>
         <ambientLight intensity={0.3} />
@@ -149,7 +149,7 @@ export default function Scene({
         />
         <pointLight position={[0, 2, -20]} intensity={40} color="#06b6d4" distance={60} />
 
-        <Stars radius={100} depth={50} count={2000} factor={4} fade speed={0.3} />
+        <Stars radius={120} depth={80} count={4000} factor={5} fade speed={0.4} />
         <NeonGrid active={playing} />
 
         <Physics gravity={[0, 0, 0]} interpolate>

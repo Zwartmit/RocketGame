@@ -21,7 +21,7 @@ interface ProjectilesProps {
   weaponHeatRef: MutableRefObject<number>;
   onHitAsteroid: (asteroidId: number, position: THREE.Vector3) => void;
   /** Ref to current obstacle data for manual hit detection */
-  obstacleDataRef: MutableRefObject<{ id: number; x: number; z: number; scale: number }[]>;
+  obstacleDataRef: MutableRefObject<{ id: number; x: number; y: number; z: number; scale: number }[]>;
 }
 
 interface Proj {
@@ -108,12 +108,12 @@ export default function Projectiles({
       for (const obs of obstacles) {
         const dx = p.x - obs.x;
         const dz = p.z - obs.z;
-        const dy = p.y - (-0.5);
+        const dy = p.y - obs.y;
         const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
         const hitRadius = obs.scale * 5;
         if (dist < hitRadius) {
           hit = true;
-          onHitAsteroid(obs.id, new THREE.Vector3(obs.x, -0.5, obs.z));
+          onHitAsteroid(obs.id, new THREE.Vector3(obs.x, obs.y, obs.z));
           break;
         }
       }
