@@ -7,6 +7,9 @@ import * as THREE from "three";
 import Drone from "./Drone";
 import NeonGrid from "./NeonGrid";
 import Obstacles from "./Obstacles";
+import Projectiles from "./Projectiles";
+import PowerUps from "./PowerUps";
+import DestructionEffect, { type DestructionEffectHandle } from "./DestructionEffect";
 import AlienShip from "./AlienShip";
 import ExplosionEffect from "./ExplosionEffect";
 import HyperspaceEffect from "./HyperspaceEffect";
@@ -16,9 +19,9 @@ import { DEFAULT_FOV } from "@/lib/physics";
 import type { KeyMap } from "@/lib/useKeyboard";
 import type { MutableRefObject, RefObject } from "react";
 import type { GameState } from "@/lib/types";
-import { WORLD_SPEED } from "@/lib/types";
+import { WORLD_SPEED, ASTEROID_DESTROY_BONUS, ENERGY_CAPSULE_RESTORE } from "@/lib/types";
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 interface SceneProps {
   gameState: GameState;
@@ -26,6 +29,31 @@ interface SceneProps {
   onCollision: () => void;
   onTick: (dt: number, distanceDelta: number) => void;
   proximityRef: MutableRefObject<boolean>;
+  hasShield: boolean;
+  onShieldBreak: () => void;
+  onAddDistanceBonus: (amount: number) => void;
+  onAddScore: (pts: number) => void;
+  onAddEnergy: (amount: number) => void;
+  onCollectShield: () => void;
+  weaponHeatRef: MutableRefObject<number>;
+}
+
+function ShieldMerger({
+  shieldDestroyRef,
+  destroyedIdsRef,
+}: {
+  shieldDestroyRef: MutableRefObject<Set<number>>;
+  destroyedIdsRef: MutableRefObject<Set<number>>;
+}) {
+  useFrame(() => {
+    if (shieldDestroyRef.current.size > 0) {
+      for (const id of shieldDestroyRef.current) {
+        destroyedIdsRef.current.add(id);
+      }
+      shieldDestroyRef.current.clear();
+    }
+  });
+  return null;
 }
 
 function GameLoop({
@@ -56,9 +84,44 @@ export default function Scene({
   onCollision,
   onTick,
   proximityRef,
+  hasShield,
+  onShieldBreak,
+  onAddDistanceBonus,
+  onAddScore,
+  onAddEnergy,
+  onCollectShield,
+  weaponHeatRef,
 }: SceneProps) {
   const playing = gameState === "PLAYING";
   const playerPosRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
+  const destroyedIdsRef = useRef<Set<number>>(new Set());
+  const shieldDestroyRef = useRef<Set<number>>(new Set());
+  const collectedIdsRef = useRef<Set<number>>(new Set());
+  const obstacleDataRef = useRef<{ id: number; x: number; z: number; scale: number }[]>([]);
+  const destructionRef = useRef<DestructionEffectHandle | null>(null);
+
+  // Merge shield-destroyed asteroids into the destroyed set each frame
+  useEffect(() => {
+    if (!playing) {
+      destroyedIdsRef.current.clear();
+      shieldDestroyRef.current.clear();
+      collectedIdsRef.current.clear();
+      obstacleDataRef.current = [];
+    }
+  }, [playing]);
+
+  const handleHitAsteroid = useCallback((asteroidId: number, position: THREE.Vector3) => {
+    destroyedIdsRef.current.add(asteroidId);
+    onAddDistanceBonus(ASTEROID_DESTROY_BONUS);
+    onAddScore(100);
+    if (destructionRef.current) {
+      destructionRef.current.spawn(position);
+    }
+  }, [onAddDistanceBonus, onAddScore]);
+
+  const handleCollectEnergy = useCallback(() => {
+    onAddEnergy(ENERGY_CAPSULE_RESTORE);
+  }, [onAddEnergy]);
 
   return (
     <Canvas
@@ -94,10 +157,37 @@ export default function Scene({
             playing={playing}
             keysRef={keysRef}
             onCollision={onCollision}
+            onShieldBreak={onShieldBreak}
+            hasShield={hasShield}
             playerPosRef={playerPosRef}
+            shieldDestroyRef={shieldDestroyRef}
           />
-          <Obstacles active={playing} proximityRef={proximityRef} />
+          <Obstacles
+            active={playing}
+            proximityRef={proximityRef}
+            destroyedIdsRef={destroyedIdsRef}
+            obstacleDataRef={obstacleDataRef}
+          />
         </Physics>
+
+        <Projectiles
+          active={playing}
+          keysRef={keysRef}
+          playerPosRef={playerPosRef}
+          weaponHeatRef={weaponHeatRef}
+          onHitAsteroid={handleHitAsteroid}
+          obstacleDataRef={obstacleDataRef}
+        />
+
+        <PowerUps
+          active={playing}
+          playerPosRef={playerPosRef}
+          collectedIdsRef={collectedIdsRef}
+          onCollectEnergy={handleCollectEnergy}
+          onCollectShield={onCollectShield}
+        />
+
+        <DestructionEffect handleRef={destructionRef} />
 
         <AlienShip
           active={playing}
@@ -111,6 +201,7 @@ export default function Scene({
         <HyperspaceEffect active={gameState === "VICTORY"} />
       </ScreenShake>
 
+      <ShieldMerger shieldDestroyRef={shieldDestroyRef} destroyedIdsRef={destroyedIdsRef} />
       <GameLoop playing={playing} onTick={onTick} />
     </Canvas>
   );

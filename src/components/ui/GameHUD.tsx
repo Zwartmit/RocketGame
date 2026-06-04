@@ -12,6 +12,7 @@ interface GameHUDProps {
   onStart: () => void;
   onRestart: () => void;
   proximityRef: MutableRefObject<boolean>;
+  weaponHeatRef: MutableRefObject<number>;
 }
 
 /* ─── Corner Brackets ─── */
@@ -158,6 +159,42 @@ function EnergyGauge({ energy }: { energy: number }) {
         {[0, 25, 50, 75, 100].map((v) => (
           <span key={v} className="font-mono text-[7px] text-cyan-400/30">{v}</span>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Weapon Heat Gauge ─── */
+function WeaponHeatGauge({ heat }: { heat: number }) {
+  const pct = Math.max(0, Math.min(100, heat * 100));
+  const overheated = heat >= 1;
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <span className={`font-mono text-[10px] uppercase tracking-wider font-semibold ${
+          overheated ? "text-red-400 animate-pulse" : "text-orange-400/90"
+        }`}>
+          Arma
+        </span>
+        <span className={`font-mono text-[10px] font-semibold ${
+          overheated ? "text-red-300" : "text-orange-300/70"
+        }`}>{pct.toFixed(0)}%</span>
+      </div>
+      <div
+        className={`relative h-2.5 w-28 sm:w-36 overflow-hidden border bg-zinc-900/60 ${
+          overheated ? "border-red-500/60" : "border-orange-400/30"
+        }`}
+        style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
+      >
+        <div
+          className={`absolute inset-y-0 left-0 transition-[width] duration-100 ${
+            overheated
+              ? "bg-gradient-to-r from-red-500 via-orange-500 to-red-500"
+              : "bg-gradient-to-r from-orange-400 via-red-500 to-orange-400"
+          }`}
+          style={{ width: `${pct}%` }}
+        />
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.15)_2px,rgba(0,0,0,0.15)_4px)]" />
       </div>
     </div>
   );
@@ -370,12 +407,14 @@ export default function GameHUD({
   onStart,
   onRestart,
   proximityRef,
+  weaponHeatRef,
 }: GameHUDProps) {
   const [showGameOver, setShowGameOver] = useState(false);
   const [showVictory, setShowVictory] = useState(false);
   const [proximity, setProximity] = useState(false);
   const [thrusterL, setThrusterL] = useState(false);
   const [thrusterR, setThrusterR] = useState(false);
+  const [weaponHeat, setWeaponHeat] = useState(0);
   const prevState = useRef(state);
 
   // Poll keysRef and proximityRef via RAF
@@ -386,11 +425,12 @@ export default function GameHUD({
       setProximity(proximityRef.current);
       setThrusterL(keysRef.current.left);
       setThrusterR(keysRef.current.right);
+      setWeaponHeat(weaponHeatRef.current);
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
-  }, [state, proximityRef, keysRef]);
+  }, [state, proximityRef, keysRef, weaponHeatRef]);
 
   useEffect(() => {
     const prev = prevState.current;
@@ -431,6 +471,14 @@ export default function GameHUD({
             <div className="skew-x-[-12deg] bg-black/60 backdrop-blur-sm border border-cyan-500/50 px-4 py-2.5 shadow-[0_0_12px_-4px_rgba(34,211,238,0.3)]">
               <div className="skew-x-[12deg]">
                 <EnergyGauge energy={telemetry.energy} />
+                <div className="mt-2">
+                  <WeaponHeatGauge heat={weaponHeat} />
+                </div>
+                {telemetry.hasShield && (
+                  <div className="mt-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-blue-400 drop-shadow-[0_0_6px_rgba(59,130,246,0.6)]">
+                    ● ESCUDO ACTIVO
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -442,9 +490,17 @@ export default function GameHUD({
             </div>
           </div>
           {/* Controls hint (desktop only) */}
+          {/* Score */}
+          {telemetry.score > 0 && (
+            <div className="absolute top-20 sm:top-4 left-1/2 -translate-x-1/2">
+              <span className="font-mono text-lg font-bold tabular-nums text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">
+                {telemetry.score}
+              </span>
+            </div>
+          )}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden sm:block">
             <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-zinc-500/60">
-              A/D o flechas para moverse
+              A/D para moverse · ESPACIO para disparar
             </span>
           </div>
         </div>
@@ -497,6 +553,11 @@ export default function GameHUD({
             <span className="font-mono text-sm text-zinc-500">
               Distancia: <span className="text-fuchsia-300">{telemetry.distance.toFixed(0)} m</span>
             </span>
+            {telemetry.score > 0 && (
+              <span className="font-mono text-sm text-zinc-500">
+                Puntuación: <span className="text-yellow-300">{telemetry.score}</span>
+              </span>
+            )}
             <span className="font-mono text-[9px] text-zinc-600">
               MISSION.STATUS: <span className="text-red-400/70">ABORTED</span>
             </span>
@@ -518,6 +579,11 @@ export default function GameHUD({
             <span className="font-mono text-sm text-zinc-500">
               ¡Llegaste al planeta!
             </span>
+            {telemetry.score > 0 && (
+              <span className="font-mono text-sm text-zinc-500">
+                Puntuación: <span className="text-yellow-300">{telemetry.score}</span>
+              </span>
+            )}
             <span className="font-mono text-[9px] text-zinc-600">
               PILOT.RANK: <span className="text-fuchsia-400/70">ACE</span>
             </span>
