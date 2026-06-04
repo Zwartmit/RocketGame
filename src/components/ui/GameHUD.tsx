@@ -13,81 +13,200 @@ interface GameHUDProps {
   onRestart: () => void;
 }
 
-function EnergyBar({ energy }: { energy: number }) {
-  const pct = Math.max(0, Math.min(100, energy * 100));
-  const barColor =
-    pct > 50
-      ? "from-cyan-400 to-cyan-300"
-      : pct > 25
-        ? "from-yellow-400 to-orange-400"
-        : "from-red-500 to-red-400";
-
+/* ─── Corner Brackets ─── */
+function CornerBrackets() {
+  const base =
+    "absolute w-8 h-8 border-cyan-400/60 drop-shadow-[0_0_6px_rgba(34,211,238,0.6)] pointer-events-none";
   return (
-    <div className="flex items-center gap-3">
-      <span className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-cyan-300/80">
-        Energía
-      </span>
-      <div className="relative h-3 w-40 overflow-hidden rounded-full border border-cyan-400/30 bg-zinc-900/70 shadow-[0_0_12px_-4px_rgba(34,211,238,0.4)]">
+    <>
+      <div className={`${base} top-2 left-2 border-t-2 border-l-2`} />
+      <div className={`${base} top-2 right-2 border-t-2 border-r-2`} />
+      <div className={`${base} bottom-2 left-2 border-b-2 border-l-2`} />
+      <div className={`${base} bottom-2 right-2 border-b-2 border-r-2`} />
+      {/* Inner chamfer lines */}
+      <div className="absolute top-2 left-12 right-12 h-px bg-gradient-to-r from-cyan-400/40 via-transparent to-cyan-400/40 pointer-events-none" />
+      <div className="absolute bottom-2 left-12 right-12 h-px bg-gradient-to-r from-cyan-400/40 via-transparent to-cyan-400/40 pointer-events-none" />
+      <div className="absolute left-2 top-12 bottom-12 w-px bg-gradient-to-b from-cyan-400/40 via-transparent to-cyan-400/40 pointer-events-none" />
+      <div className="absolute right-2 top-12 bottom-12 w-px bg-gradient-to-b from-cyan-400/40 via-transparent to-cyan-400/40 pointer-events-none" />
+    </>
+  );
+}
+
+/* ─── Ambient Telemetry (visual fluff) ─── */
+function AmbientTelemetry() {
+  return (
+    <>
+      {/* Top-left */}
+      <div className="absolute top-4 left-12 font-mono text-[9px] leading-tight text-cyan-400/50 pointer-events-none select-none">
+        <div>SYS.ALIGNMENT: <span className="text-cyan-300/70">OK</span></div>
+        <div>NAV.FREQ: <span className="text-fuchsia-400/60">427.8 MHz</span></div>
+        <div>GRID.LOCK: <span className="text-cyan-300/70">ACTIVE</span></div>
+      </div>
+      {/* Top-right */}
+      <div className="absolute top-4 right-12 font-mono text-[9px] leading-tight text-right text-fuchsia-400/50 pointer-events-none select-none">
+        <div>COORD X:<span className="text-fuchsia-300/70"> 0.42°</span></div>
+        <div>COORD Z:<span className="text-fuchsia-300/70"> -12.7°</span></div>
+        <div>SIGNAL: <span className="text-cyan-400/60">■■■■□</span></div>
+      </div>
+      {/* Bottom-left */}
+      <div className="absolute bottom-4 left-12 font-mono text-[9px] leading-tight text-cyan-400/40 pointer-events-none select-none hidden sm:block">
+        <div>THRUST.VEC: <span className="text-cyan-300/60">NOMINAL</span></div>
+        <div>SHIELD: <span className="text-fuchsia-400/50">72%</span></div>
+      </div>
+      {/* Bottom-right */}
+      <div className="absolute bottom-4 right-12 font-mono text-[9px] leading-tight text-right text-fuchsia-400/40 pointer-events-none select-none hidden sm:block">
+        <div>FUEL.MIX: <span className="text-cyan-400/50">OPT</span></div>
+        <div>COMM.CH: <span className="text-fuchsia-300/50">7-ALPHA</span></div>
+      </div>
+    </>
+  );
+}
+
+/* ─── Energy Gauge (angled tech bar with gradient) ─── */
+function EnergyGauge({ energy }: { energy: number }) {
+  const pct = Math.max(0, Math.min(100, energy * 100));
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-cyan-400/70">
+          Energía
+        </span>
+        <span className="font-mono text-[9px] text-cyan-300/50">{pct.toFixed(0)}%</span>
+      </div>
+      <div
+        className="relative h-3 w-36 sm:w-44 overflow-hidden border border-cyan-400/30 bg-zinc-900/60"
+        style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
+      >
         <div
-          className={`absolute inset-y-0 left-0 rounded-full bg-gradient-to-r ${barColor} transition-[width] duration-150`}
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-cyan-400 via-fuchsia-500 to-cyan-400 transition-[width] duration-150"
           style={{ width: `${pct}%` }}
         />
+        {/* Scanline overlay */}
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.15)_2px,rgba(0,0,0,0.15)_4px)]" />
+      </div>
+      {/* Mini ticks */}
+      <div className="flex justify-between w-36 sm:w-44">
+        {[0, 25, 50, 75, 100].map((v) => (
+          <span key={v} className="font-mono text-[7px] text-cyan-400/30">{v}</span>
+        ))}
       </div>
     </div>
   );
 }
 
-function DistanceCounter({
-  distance,
-}: {
-  distance: number;
-}) {
+/* ─── Distance Gauge ─── */
+function DistanceGauge({ distance }: { distance: number }) {
   const remaining = Math.max(0, TARGET_DISTANCE - distance);
+  const pct = Math.min(100, (distance / TARGET_DISTANCE) * 100);
   return (
-    <div className="flex flex-col items-end">
-      <span className="font-mono text-[0.65rem] uppercase tracking-[0.2em] text-fuchsia-300/80">
+    <div className="flex flex-col items-end gap-1">
+      <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-fuchsia-400/70">
         Distancia al Planeta
       </span>
-      <span className="font-mono text-2xl font-bold tabular-nums text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.6)]">
+      <span className="font-mono text-2xl font-bold tabular-nums text-fuchsia-300 drop-shadow-[0_0_10px_rgba(232,121,249,0.6)]">
         {remaining.toFixed(0)}
-        <span className="ml-1 text-sm font-normal text-fuchsia-300/60">m</span>
+        <span className="ml-1 text-xs font-normal text-fuchsia-300/50">m</span>
       </span>
+      <div
+        className="relative h-2 w-28 sm:w-36 overflow-hidden border border-fuchsia-400/30 bg-zinc-900/60"
+        style={{ clipPath: "polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%)" }}
+      >
+        <div
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-fuchsia-500 via-cyan-400 to-fuchsia-500 transition-[width] duration-300"
+          style={{ width: `${pct}%` }}
+        />
+        <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,0,0,0.15)_2px,rgba(0,0,0,0.15)_4px)]" />
+      </div>
     </div>
   );
 }
 
-function Overlay({ children }: { children: React.ReactNode }) {
+/* ─── FUI Overlay Container ─── */
+function FuiOverlay({ children }: { children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md">
-      <div className="flex flex-col items-center gap-6 text-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md">
+      {/* Central container with chamfered clip-path */}
+      <div
+        className="relative flex flex-col items-center gap-6 px-12 py-10 border border-cyan-400/20 bg-zinc-950/80"
+        style={{
+          clipPath:
+            "polygon(16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px), 0 16px)",
+        }}
+      >
+        {/* Corner glows */}
+        <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent" />
+        <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-fuchsia-400/60 to-transparent" />
+        <div className="absolute left-0 top-4 bottom-4 w-px bg-gradient-to-b from-transparent via-cyan-400/40 to-transparent" />
+        <div className="absolute right-0 top-4 bottom-4 w-px bg-gradient-to-b from-transparent via-fuchsia-400/40 to-transparent" />
         {children}
       </div>
     </div>
   );
 }
 
-function NeonButton({
+/* ─── FUI Button ─── */
+function FuiButton({
   onClick,
   children,
+  color = "cyan",
 }: {
   onClick: () => void;
   children: React.ReactNode;
+  color?: "cyan" | "fuchsia" | "red";
 }) {
+  const colors = {
+    cyan: "border-cyan-400/50 text-cyan-300 shadow-[0_0_20px_-4px_rgba(34,211,238,0.5)] hover:border-cyan-300 hover:bg-cyan-400/15 hover:shadow-[0_0_30px_0px_rgba(34,211,238,0.5)]",
+    fuchsia: "border-fuchsia-400/50 text-fuchsia-300 shadow-[0_0_20px_-4px_rgba(232,121,249,0.5)] hover:border-fuchsia-300 hover:bg-fuchsia-400/15 hover:shadow-[0_0_30px_0px_rgba(232,121,249,0.5)]",
+    red: "border-red-400/50 text-red-300 shadow-[0_0_20px_-4px_rgba(239,68,68,0.5)] hover:border-red-300 hover:bg-red-400/15 hover:shadow-[0_0_30px_0px_rgba(239,68,68,0.5)]",
+  };
   return (
     <button
       onClick={onClick}
-      className="rounded-xl border border-cyan-400/50 bg-cyan-500/10 px-8 py-3 font-mono text-sm uppercase tracking-[0.3em] text-cyan-300 shadow-[0_0_24px_-4px_rgba(34,211,238,0.5)] transition-all duration-200 hover:border-cyan-300 hover:bg-cyan-400/20 hover:text-white hover:shadow-[0_0_32px_0px_rgba(34,211,238,0.6)] active:scale-95"
+      className={`relative px-8 py-3 font-mono text-sm uppercase tracking-[0.3em] bg-zinc-900/60 transition-all duration-200 active:scale-95 ${colors[color]}`}
+      style={{
+        clipPath:
+          "polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px)",
+        border: "1px solid",
+      }}
     >
       {children}
     </button>
   );
 }
 
+/* ─── Targeting Reticle ─── */
+function TargetingReticle({ onClick }: { onClick: () => void }) {
+  return (
+    <div className="relative flex items-center justify-center">
+      {/* Outer ring — slow spin */}
+      <div className="absolute w-52 h-52 rounded-full border-2 border-dashed border-cyan-400/25 animate-[spin_20s_linear_infinite]" />
+      {/* Middle ring — reverse spin */}
+      <div className="absolute w-40 h-40 rounded-full border border-dashed border-fuchsia-400/30 animate-[spin_15s_linear_infinite_reverse]" />
+      {/* Inner ring */}
+      <div className="absolute w-28 h-28 rounded-full border border-cyan-400/20 animate-[spin_10s_linear_infinite]" />
+      {/* Crosshairs */}
+      <div className="absolute w-56 h-px bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+      <div className="absolute h-56 w-px bg-gradient-to-b from-transparent via-cyan-400/20 to-transparent" />
+      {/* Center button */}
+      <FuiButton onClick={onClick}>Iniciar Misión</FuiButton>
+    </div>
+  );
+}
+
+/* ─── Mobile Controls ─── */
 function MobileControls({ keysRef }: { keysRef: RefObject<KeyMap> }) {
+  const btnBase =
+    "flex h-16 w-16 items-center justify-center text-2xl select-none touch-none bg-zinc-900/50 active:scale-90 transition-transform";
+  const btnStyle = {
+    clipPath:
+      "polygon(6px 0, calc(100% - 6px) 0, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0 calc(100% - 6px), 0 6px)",
+    border: "1px solid rgba(34,211,238,0.3)",
+  };
   return (
     <div className="fixed bottom-6 left-0 right-0 z-30 flex justify-between px-6 sm:hidden">
       <button
-        className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-400/40 bg-cyan-500/10 text-2xl text-cyan-300 shadow-[0_0_16px_-4px_rgba(34,211,238,0.4)] active:bg-cyan-400/30 active:scale-90 select-none touch-none"
+        className={`${btnBase} text-cyan-300 shadow-[0_0_12px_-4px_rgba(34,211,238,0.4)]`}
+        style={btnStyle}
         onTouchStart={() => { keysRef.current.left = true; }}
         onTouchEnd={() => { keysRef.current.left = false; }}
         onTouchCancel={() => { keysRef.current.left = false; }}
@@ -95,7 +214,8 @@ function MobileControls({ keysRef }: { keysRef: RefObject<KeyMap> }) {
         ◀
       </button>
       <button
-        className="flex h-16 w-16 items-center justify-center rounded-full border border-cyan-400/40 bg-cyan-500/10 text-2xl text-cyan-300 shadow-[0_0_16px_-4px_rgba(34,211,238,0.4)] active:bg-cyan-400/30 active:scale-90 select-none touch-none"
+        className={`${btnBase} text-cyan-300 shadow-[0_0_12px_-4px_rgba(34,211,238,0.4)]`}
+        style={btnStyle}
         onTouchStart={() => { keysRef.current.right = true; }}
         onTouchEnd={() => { keysRef.current.right = false; }}
         onTouchCancel={() => { keysRef.current.right = false; }}
@@ -106,11 +226,13 @@ function MobileControls({ keysRef }: { keysRef: RefObject<KeyMap> }) {
   );
 }
 
-/** Delay before showing the GAME_OVER overlay (let explosion play). */
+/* ─── Delays ─── */
 const GAME_OVER_DELAY = 1800;
-/** Delay before showing the VICTORY overlay (let warp animation play). */
 const VICTORY_DELAY = 2200;
 
+/* ═══════════════════════════════════════════════════════
+   Main HUD
+   ═══════════════════════════════════════════════════════ */
 export default function GameHUD({
   state,
   telemetry,
@@ -144,73 +266,101 @@ export default function GameHUD({
 
   return (
     <>
-      {/* HUD en juego (visible durante PLAYING) */}
+      {/* ── Playing HUD ── */}
       {state === "PLAYING" && (
-        <div className="pointer-events-none fixed inset-0 z-30 flex flex-col justify-between p-4 sm:p-6">
-          {/* Barra superior */}
-          <div className="flex items-start justify-between">
-            <EnergyBar energy={telemetry.energy} />
-            <DistanceCounter distance={telemetry.distance} />
+        <div className="pointer-events-none fixed inset-0 z-30">
+          <CornerBrackets />
+          <AmbientTelemetry />
+          {/* Gauges */}
+          <div className="absolute top-5 left-12 sm:left-14">
+            <EnergyGauge energy={telemetry.energy} />
           </div>
-          {/* Indicación inferior (solo desktop) */}
-          <div className="hidden sm:flex justify-center">
-            <span className="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-zinc-500">
+          <div className="absolute top-5 right-12 sm:right-14">
+            <DistanceGauge distance={telemetry.distance} />
+          </div>
+          {/* Controls hint (desktop only) */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 hidden sm:block">
+            <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-zinc-500/60">
               A/D o flechas para moverse
             </span>
           </div>
         </div>
       )}
 
-      {/* Botones móviles durante PLAYING */}
+      {/* Mobile buttons */}
       {state === "PLAYING" && <MobileControls keysRef={keysRef} />}
 
-      {/* Pantalla de INICIO */}
+      {/* ── Start Screen ── */}
       {state === "START" && (
-        <Overlay>
-          <h1 className="font-mono text-4xl font-black uppercase tracking-[0.4em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)] sm:text-5xl">
+        <FuiOverlay>
+          {/* Subtitle */}
+          <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-cyan-400/50">
+            {"// ARCADE SYNTHWAVE //"}
+          </span>
+          {/* Title */}
+          <h1 className="font-mono text-4xl sm:text-5xl font-black uppercase tracking-[0.4em] text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.5)]">
             Super Rocket
           </h1>
-          <p className="max-w-xs font-mono text-xs leading-relaxed text-zinc-400">
-            Esquiva los obstáculos. Llega al planeta antes de quedarte sin energía.
+          <p className="max-w-xs font-mono text-[11px] leading-relaxed text-zinc-500 text-center">
+            Esquiva los asteroides. Llega al planeta antes de quedarte sin energía.
           </p>
-          <NeonButton onClick={onStart}>Iniciar Juego</NeonButton>
-        </Overlay>
+          {/* Targeting reticle with start button */}
+          <TargetingReticle onClick={onStart} />
+          {/* Bottom flourish */}
+          <span className="font-mono text-[8px] uppercase tracking-[0.3em] text-fuchsia-400/30">
+            SYS.READY — AWAITING PILOT INPUT
+          </span>
+        </FuiOverlay>
       )}
 
-      {/* Flash rojo en GAME OVER */}
+      {/* Flash effects */}
       {state === "GAME_OVER" && (
         <div className="fixed inset-0 z-40 bg-red-500/40 animate-shake pointer-events-none" />
       )}
-
-      {/* Flash cyan en VICTORIA */}
       {state === "VICTORY" && (
         <div className="fixed inset-0 z-40 bg-cyan-400/50 animate-warp-flash pointer-events-none" />
       )}
 
-      {/* Pantalla de GAME OVER (delayed until explosion finishes) */}
+      {/* ── Game Over Screen ── */}
       {state === "GAME_OVER" && showGameOver && (
-        <Overlay>
-          <h2 className="font-mono text-3xl font-black uppercase tracking-[0.3em] text-red-400 drop-shadow-[0_0_16px_rgba(239,68,68,0.6)] sm:text-4xl">
+        <FuiOverlay>
+          <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-red-400/50">
+            {"// SYSTEM FAILURE //"}
+          </span>
+          <h2 className="font-mono text-3xl sm:text-4xl font-black uppercase tracking-[0.3em] text-red-400 drop-shadow-[0_0_16px_rgba(239,68,68,0.6)]">
             Fin del Juego
           </h2>
-          <p className="font-mono text-sm text-zinc-400">
-            Distancia: {telemetry.distance.toFixed(0)} m
-          </p>
-          <NeonButton onClick={onRestart}>Reiniciar</NeonButton>
-        </Overlay>
+          <div className="flex flex-col items-center gap-1">
+            <span className="font-mono text-sm text-zinc-500">
+              Distancia: <span className="text-fuchsia-300">{telemetry.distance.toFixed(0)} m</span>
+            </span>
+            <span className="font-mono text-[9px] text-zinc-600">
+              MISSION.STATUS: <span className="text-red-400/70">ABORTED</span>
+            </span>
+          </div>
+          <FuiButton onClick={onRestart} color="red">Reiniciar</FuiButton>
+        </FuiOverlay>
       )}
 
-      {/* Pantalla de VICTORIA (delayed until warp animation finishes) */}
+      {/* ── Victory Screen ── */}
       {state === "VICTORY" && showVictory && (
-        <Overlay>
-          <h2 className="font-mono text-3xl font-black uppercase tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(232,121,249,0.5)] sm:text-4xl">
+        <FuiOverlay>
+          <span className="font-mono text-[9px] uppercase tracking-[0.35em] text-cyan-400/50">
+            {"// MISSION COMPLETE //"}
+          </span>
+          <h2 className="font-mono text-3xl sm:text-4xl font-black uppercase tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400 drop-shadow-[0_0_20px_rgba(232,121,249,0.5)]">
             ¡Victoria!
           </h2>
-          <p className="font-mono text-sm text-zinc-400">
-            ¡Llegaste al planeta!
-          </p>
-          <NeonButton onClick={onRestart}>Jugar de Nuevo</NeonButton>
-        </Overlay>
+          <div className="flex flex-col items-center gap-1">
+            <span className="font-mono text-sm text-zinc-500">
+              ¡Llegaste al planeta!
+            </span>
+            <span className="font-mono text-[9px] text-zinc-600">
+              PILOT.RANK: <span className="text-fuchsia-400/70">ACE</span>
+            </span>
+          </div>
+          <FuiButton onClick={onRestart} color="fuchsia">Jugar de Nuevo</FuiButton>
+        </FuiOverlay>
       )}
     </>
   );

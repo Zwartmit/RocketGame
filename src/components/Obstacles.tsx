@@ -49,7 +49,7 @@ export default function Obstacles({ active }: { active: boolean }) {
         id: nextId++,
         x: (Math.random() - 0.5) * LANE_LIMIT * 2,
         z: OBSTACLE_SPAWN_Z,
-        scale: 0.8 + Math.random() * 1.2,
+        scale: 0.4 + Math.random() * 0.6,
         rotY: Math.random() * Math.PI * 2,
       };
     }
@@ -66,7 +66,7 @@ export default function Obstacles({ active }: { active: boolean }) {
         }
         const rb = rigidBodies.current.get(obs.id);
         if (rb) {
-          rb.setNextKinematicTranslation({ x: obs.x, y: 0, z: newZ });
+          rb.setNextKinematicTranslation({ x: obs.x, y: -0.5, z: newZ });
         }
         next.push({ ...obs, z: newZ });
       }
@@ -82,7 +82,7 @@ export default function Obstacles({ active }: { active: boolean }) {
         <RigidBody
           key={obs.id}
           type="kinematicPosition"
-          position={[obs.x, 0, obs.z]}
+          position={[obs.x, -0.5, obs.z]}
           colliders={false}
           ref={(ref: RapierRigidBody | null) => {
             if (ref) rigidBodies.current.set(obs.id, ref);
@@ -90,7 +90,7 @@ export default function Obstacles({ active }: { active: boolean }) {
           userData={{ obstacle: true }}
         >
           <CuboidCollider
-            args={[obs.scale * 0.5, obs.scale * 0.5, obs.scale * 0.5]}
+            args={[obs.scale * 0.7, obs.scale * 0.7, obs.scale * 0.7]}
             sensor
           />
           <group rotation={[0, obs.rotY, 0]}>
