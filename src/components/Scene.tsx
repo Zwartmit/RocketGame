@@ -11,6 +11,7 @@ import AlienShip from "./AlienShip";
 import ExplosionEffect from "./ExplosionEffect";
 import HyperspaceEffect from "./HyperspaceEffect";
 import ScreenShake from "./ScreenShake";
+import SpeedLines from "./SpeedLines";
 import { DEFAULT_FOV } from "@/lib/physics";
 import type { KeyMap } from "@/lib/useKeyboard";
 import type { RefObject } from "react";
@@ -101,6 +102,8 @@ export default function Scene({
           onHitPlayer={onCollision}
           playerPosRef={playerPosRef}
         />
+
+        <SpeedLines active={playing} />
 
         <ExplosionEffect active={gameState === "GAME_OVER"} />
         <HyperspaceEffect active={gameState === "VICTORY"} />

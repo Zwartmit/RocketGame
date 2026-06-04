@@ -62,6 +62,74 @@ function AmbientTelemetry() {
   );
 }
 
+/* ─── CSS Vignette ─── */
+function Vignette() {
+  return (
+    <div
+      className="fixed inset-0 pointer-events-none z-20"
+      style={{
+        background:
+          "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 80%, rgba(0,0,0,0.85) 100%)",
+      }}
+    />
+  );
+}
+
+/* ─── Vertical Data Bars (left & right edges) ─── */
+function VerticalDataBars() {
+  const segments = 12;
+  return (
+    <>
+      {/* Left bar */}
+      <div className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col gap-[3px] pointer-events-none select-none">
+        {Array.from({ length: segments }).map((_, i) => (
+          <div
+            key={`l${i}`}
+            className="w-[3px] h-4 rounded-sm"
+            style={{
+              background: i < segments / 2
+                ? `rgba(34,211,238,${0.15 + (i / segments) * 0.4})`
+                : `rgba(232,121,249,${0.15 + ((segments - i) / segments) * 0.4})`,
+              animation: `pulse-glow ${1.5 + i * 0.2}s ease-in-out infinite`,
+            }}
+          />
+        ))}
+      </div>
+      {/* Right bar */}
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-[3px] pointer-events-none select-none">
+        {Array.from({ length: segments }).map((_, i) => (
+          <div
+            key={`r${i}`}
+            className="w-[3px] h-4 rounded-sm"
+            style={{
+              background: i < segments / 2
+                ? `rgba(232,121,249,${0.15 + (i / segments) * 0.4})`
+                : `rgba(34,211,238,${0.15 + ((segments - i) / segments) * 0.4})`,
+              animation: `pulse-glow ${1.8 + i * 0.15}s ease-in-out infinite`,
+            }}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ─── Central Reticle (faint cyan crosshair) ─── */
+function CentralReticle() {
+  return (
+    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none">
+      {/* Horizontal line */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-px bg-gradient-to-r from-transparent via-cyan-400/25 to-transparent" />
+      {/* Vertical line */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-16 w-px bg-gradient-to-b from-transparent via-cyan-400/25 to-transparent" />
+      {/* Center dot */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-cyan-400/30 shadow-[0_0_6px_rgba(34,211,238,0.4)]" />
+      {/* Corner ticks */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 border border-cyan-400/10 rounded-full" />
+    </div>
+  );
+}
+
 /* ─── Energy Gauge (angled tech bar with gradient) ─── */
 function EnergyGauge({ energy }: { energy: number }) {
   const pct = Math.max(0, Math.min(100, energy * 100));
@@ -267,10 +335,15 @@ export default function GameHUD({
   return (
     <>
       {/* ── Playing HUD ── */}
+      {/* Always-on vignette */}
+      <Vignette />
+
       {state === "PLAYING" && (
         <div className="pointer-events-none fixed inset-0 z-30">
           <CornerBrackets />
           <AmbientTelemetry />
+          <VerticalDataBars />
+          <CentralReticle />
           {/* Gauges */}
           <div className="absolute top-5 left-12 sm:left-14">
             <EnergyGauge energy={telemetry.energy} />

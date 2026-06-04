@@ -90,7 +90,7 @@ export default function Obstacles({ active }: { active: boolean }) {
           userData={{ obstacle: true }}
         >
           <CuboidCollider
-            args={[obs.scale * 1.2, obs.scale * 1.2, obs.scale * 1.2]}
+            args={[obs.scale * 5, obs.scale * 4.5, obs.scale * 4]}
             sensor
           />
           <group rotation={[0, obs.rotY, 0]}>
