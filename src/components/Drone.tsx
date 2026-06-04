@@ -76,50 +76,55 @@ export default function Drone({
     const dt = Math.min(delta, MAX_FRAME_DT);
     const keys = keysRef.current;
 
-    // Lateral impulse from keyboard + joystick
-    let impulseX = 0;
-    if (keys.left) impulseX -= LATERAL_IMPULSE * dt;
-    if (keys.right) impulseX += LATERAL_IMPULSE * dt;
-    impulseX += keys.joyX * LATERAL_IMPULSE * dt;
+    try {
+      // Lateral impulse from keyboard + joystick
+      let impulseX = 0;
+      if (keys.left) impulseX -= LATERAL_IMPULSE * dt;
+      if (keys.right) impulseX += LATERAL_IMPULSE * dt;
+      impulseX += keys.joyX * LATERAL_IMPULSE * dt;
 
-    // Vertical impulse from keyboard + joystick
-    let impulseY = 0;
-    if (keys.up) impulseY += VERTICAL_IMPULSE * dt;
-    if (keys.down) impulseY -= VERTICAL_IMPULSE * dt;
-    impulseY += keys.joyY * VERTICAL_IMPULSE * dt;
+      // Vertical impulse from keyboard + joystick
+      let impulseY = 0;
+      if (keys.up) impulseY += VERTICAL_IMPULSE * dt;
+      if (keys.down) impulseY -= VERTICAL_IMPULSE * dt;
+      impulseY += keys.joyY * VERTICAL_IMPULSE * dt;
 
-    if (impulseX !== 0 || impulseY !== 0) {
-      rb.applyImpulse({ x: impulseX, y: impulseY, z: 0 }, true);
+      if (impulseX !== 0 || impulseY !== 0) {
+        rb.applyImpulse({ x: impulseX, y: impulseY, z: 0 }, true);
+      }
+
+      // Read position & velocity once
+      const pos = rb.translation();
+      const vel = rb.linvel();
+
+      // Clamp lateral position
+      if (pos.x < -LANE_LIMIT) {
+        rb.setLinvel({ x: Math.max(vel.x, 0), y: vel.y, z: vel.z }, true);
+        rb.applyImpulse({ x: (-LANE_LIMIT - pos.x) * DRONE_MASS * 10, y: 0, z: 0 }, true);
+      } else if (pos.x > LANE_LIMIT) {
+        rb.setLinvel({ x: Math.min(vel.x, 0), y: vel.y, z: vel.z }, true);
+        rb.applyImpulse({ x: (LANE_LIMIT - pos.x) * DRONE_MASS * 10, y: 0, z: 0 }, true);
+      }
+
+      // Clamp vertical position
+      if (pos.y < Y_LIMIT_MIN) {
+        rb.setLinvel({ x: vel.x, y: Math.max(vel.y, 0), z: vel.z }, true);
+        rb.applyImpulse({ x: 0, y: (Y_LIMIT_MIN - pos.y) * DRONE_MASS * 10, z: 0 }, true);
+      } else if (pos.y > Y_LIMIT_MAX) {
+        rb.setLinvel({ x: vel.x, y: Math.min(vel.y, 0), z: vel.z }, true);
+        rb.applyImpulse({ x: 0, y: (Y_LIMIT_MAX - pos.y) * DRONE_MASS * 10, z: 0 }, true);
+      }
+
+      // Update player position ref
+      playerPosRef.current.set(pos.x, pos.y, pos.z);
+
+      // Dampen Z drift
+      const correctedVz = -pos.z * 8;
+      rb.setLinvel({ x: vel.x, y: vel.y, z: correctedVz }, true);
+    } catch {
+      // Rapier body may be temporarily invalid during React re-render
+      return;
     }
-
-    // Read position & velocity once
-    const pos = rb.translation();
-    const vel = rb.linvel();
-
-    // Clamp lateral position
-    if (pos.x < -LANE_LIMIT) {
-      rb.setLinvel({ x: Math.max(vel.x, 0), y: vel.y, z: vel.z }, true);
-      rb.applyImpulse({ x: (-LANE_LIMIT - pos.x) * DRONE_MASS * 10, y: 0, z: 0 }, true);
-    } else if (pos.x > LANE_LIMIT) {
-      rb.setLinvel({ x: Math.min(vel.x, 0), y: vel.y, z: vel.z }, true);
-      rb.applyImpulse({ x: (LANE_LIMIT - pos.x) * DRONE_MASS * 10, y: 0, z: 0 }, true);
-    }
-
-    // Clamp vertical position
-    if (pos.y < Y_LIMIT_MIN) {
-      rb.setLinvel({ x: vel.x, y: Math.max(vel.y, 0), z: vel.z }, true);
-      rb.applyImpulse({ x: 0, y: (Y_LIMIT_MIN - pos.y) * DRONE_MASS * 10, z: 0 }, true);
-    } else if (pos.y > Y_LIMIT_MAX) {
-      rb.setLinvel({ x: vel.x, y: Math.min(vel.y, 0), z: vel.z }, true);
-      rb.applyImpulse({ x: 0, y: (Y_LIMIT_MAX - pos.y) * DRONE_MASS * 10, z: 0 }, true);
-    }
-
-    // Update player position ref
-    playerPosRef.current.set(pos.x, pos.y, pos.z);
-
-    // Dampen Z drift
-    const correctedVz = -pos.z * 8;
-    rb.setLinvel({ x: vel.x, y: vel.y, z: correctedVz }, true);
 
     // Dynamic ship tilt
     const inputX = (keys.left ? -1 : 0) + (keys.right ? 1 : 0) + keys.joyX;
