@@ -1,6 +1,6 @@
 {
-  "name": "Laboratorio 3D: Segunda Ley de Newton",
-  "short_name": "Ley de Newton",
+  "name": "Rocket Run — Arcade Synthwave",
+  "short_name": "Rocket Run",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -15,7 +15,7 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#0a0a0f",
-  "background_color": "#0a0a0f",
+  "theme_color": "#05060a",
+  "background_color": "#05060a",
   "display": "standalone"
 }
