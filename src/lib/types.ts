@@ -19,7 +19,7 @@ export const MAX_ENERGY = 1;
 export const ENERGY_DRAIN_PER_SEC = 0.02;
 
 /** Lateral impulse magnitude applied per frame while a key is held. */
-export const LATERAL_IMPULSE = 12;
+export const LATERAL_IMPULSE = 28;
 
 /** Forward speed (Z-units/second) of the scrolling world. */
 export const WORLD_SPEED = 18;

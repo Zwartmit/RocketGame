@@ -44,12 +44,14 @@ export default function DroneModel() {
   }, [gl, rootScene, camera, scene]);
 
   return (
-    <group position={[0, GROUP_Y, 0]} scale={MODEL_SCALE}>
-      <group rotation={AXIS_TILT_FIX}>
-        <Clone
-          object={scene}
-          position={[-AXIS_MID[0], -AXIS_MID[1], -AXIS_MID[2]]}
-        />
+    <group rotation={[-Math.PI / 2, 0, 0]}>
+      <group position={[0, GROUP_Y, 0]} scale={MODEL_SCALE}>
+        <group rotation={AXIS_TILT_FIX}>
+          <Clone
+            object={scene}
+            position={[-AXIS_MID[0], -AXIS_MID[1], -AXIS_MID[2]]}
+          />
+        </group>
       </group>
     </group>
   );

@@ -3,7 +3,9 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
-import { EXHAUST_PARTICLE_COUNT as COUNT, MAX_FRAME_DT, NOZZLE_Y } from "@/lib/physics";
+import { EXHAUST_PARTICLE_COUNT as COUNT, MAX_FRAME_DT } from "@/lib/physics";
+
+const NOZZLE_Z = 0.95;
 
 interface Particle {
   pos: THREE.Vector3;
@@ -20,14 +22,14 @@ interface ParticleData {
 function spawn(p: Particle) {
   p.pos.set(
     (Math.random() - 0.5) * 0.25,
-    NOZZLE_Y,
     (Math.random() - 0.5) * 0.25,
+    NOZZLE_Z,
   );
-  // Velocidad principal hacia abajo (-Y) con dispersión cónica.
+  // Emit backward (+Z) with conical spread.
   p.vel.set(
     (Math.random() - 0.5) * 1.6,
-    -(3 + Math.random() * 3),
     (Math.random() - 0.5) * 1.6,
+    3 + Math.random() * 3,
   );
   p.maxLife = 0.4 + Math.random() * 0.5;
   p.life = p.maxLife;
@@ -37,7 +39,7 @@ function spawn(p: Particle) {
 function createData(): ParticleData {
   return {
     particles: Array.from({ length: COUNT }, () => ({
-      pos: new THREE.Vector3(0, NOZZLE_Y, 0),
+      pos: new THREE.Vector3(0, 0, NOZZLE_Z),
       vel: new THREE.Vector3(),
       life: 0,
       maxLife: 0,
@@ -77,7 +79,7 @@ export default function ExhaustParticles({ active }: { active: boolean }) {
           spawnBudget--;
         } else {
           // Oculta la partícula inactiva escalándola a cero.
-          dummy.position.set(0, NOZZLE_Y, 0);
+          dummy.position.set(0, 0, NOZZLE_Z);
           dummy.scale.setScalar(0);
           dummy.updateMatrix();
           mesh.setMatrixAt(i, dummy.matrix);
