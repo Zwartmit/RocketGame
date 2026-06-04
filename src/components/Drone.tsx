@@ -5,6 +5,7 @@ import {
   useRef,
   type RefObject,
 } from "react";
+import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import {
   RigidBody,
@@ -26,12 +27,15 @@ interface DroneProps {
   playing: boolean;
   keysRef: RefObject<KeyMap>;
   onCollision: () => void;
+  /** Mutable Vector3 updated each frame with the drone's world position. */
+  playerPosRef: RefObject<THREE.Vector3>;
 }
 
 export default function Drone({
   playing,
   keysRef,
   onCollision,
+  playerPosRef,
 }: DroneProps) {
   const body = useRef<RapierRigidBody>(null);
   const collided = useRef(false);
@@ -60,6 +64,9 @@ export default function Drone({
       rb.setTranslation({ x: LANE_LIMIT, y: pos.y, z: pos.z }, true);
       rb.setLinvel({ x: 0, y: rb.linvel().y, z: rb.linvel().z }, true);
     }
+
+    // Update player position ref for alien ship targeting
+    playerPosRef.current.set(pos.x, pos.y, pos.z);
 
     // Dampen vertical drift (keep drone roughly at y=0)
     const vy = rb.linvel().y;

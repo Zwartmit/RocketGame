@@ -3,9 +3,11 @@
 import { Canvas } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import { Physics } from "@react-three/rapier";
+import * as THREE from "three";
 import Drone from "./Drone";
 import NeonGrid from "./NeonGrid";
 import Obstacles from "./Obstacles";
+import AlienShip from "./AlienShip";
 import ExplosionEffect from "./ExplosionEffect";
 import HyperspaceEffect from "./HyperspaceEffect";
 import ScreenShake from "./ScreenShake";
@@ -53,6 +55,7 @@ export default function Scene({
   onTick,
 }: SceneProps) {
   const playing = gameState === "PLAYING";
+  const playerPosRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 0));
 
   return (
     <Canvas
@@ -88,9 +91,16 @@ export default function Scene({
             playing={playing}
             keysRef={keysRef}
             onCollision={onCollision}
+            playerPosRef={playerPosRef}
           />
           <Obstacles active={playing} />
         </Physics>
+
+        <AlienShip
+          active={playing}
+          onHitPlayer={onCollision}
+          playerPosRef={playerPosRef}
+        />
 
         <ExplosionEffect active={gameState === "GAME_OVER"} />
         <HyperspaceEffect active={gameState === "VICTORY"} />
