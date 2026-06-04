@@ -25,7 +25,7 @@ export const LATERAL_IMPULSE = 60;
 export const WORLD_SPEED = 18;
 
 /** Obstacle spawn interval (seconds). */
-export const OBSTACLE_INTERVAL = 0.9;
+export const OBSTACLE_INTERVAL = 1.6;
 
 /** How far ahead (Z) obstacles spawn. */
 export const OBSTACLE_SPAWN_Z = -80;

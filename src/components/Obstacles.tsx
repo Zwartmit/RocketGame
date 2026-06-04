@@ -49,7 +49,7 @@ export default function Obstacles({ active }: { active: boolean }) {
         id: nextId++,
         x: (Math.random() - 0.5) * LANE_LIMIT * 2,
         z: OBSTACLE_SPAWN_Z,
-        scale: 0.4 + Math.random() * 0.6,
+        scale: 0.15 + Math.random() * 0.25,
         rotY: Math.random() * Math.PI * 2,
       };
     }
@@ -90,7 +90,7 @@ export default function Obstacles({ active }: { active: boolean }) {
           userData={{ obstacle: true }}
         >
           <CuboidCollider
-            args={[obs.scale * 0.7, obs.scale * 0.7, obs.scale * 0.7]}
+            args={[obs.scale * 1.2, obs.scale * 1.2, obs.scale * 1.2]}
             sensor
           />
           <group rotation={[0, obs.rotY, 0]}>
